@@ -1,0 +1,666 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="Definitions_TaoYCMH_CCDC" targetNamespace="http://bpmn.io/schema/bpmn" exporter="bpmn-js (https://demo.bpmn.io)" exporterVersion="18.27.0">
+  <bpmn:collaboration id="Collaboration_1">
+    <bpmn:participant id="Participant_Pool" name="Quy trình tạo Yêu cầu mua hàng Công cụ dụng cụ (F2)" processRef="Process_1" />
+    <bpmn:textAnnotation id="TextAnnotation_1k3irfp">
+      <bpmn:text>Đề xuất làm kiểm kê vào cuối tháng hoặc trước ngày 15 của tháng trước khi tạo YCMH</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:textAnnotation id="TextAnnotation_0p5sndn">
+      <bpmn:text>Tạo trong khoảng [01 -&gt; 07]
+=&gt; Hàng về trước ngày 25 cùng tháng
+
+Tạo trong khoảng [08 -&gt; 15]
+=&gt; Hàng về trước ngày 05 tháng sau</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:association id="Association_0nmgzh8" associationDirection="None" sourceRef="Flow_6" targetRef="TextAnnotation_0p5sndn" />
+    <bpmn:textAnnotation id="TextAnnotation_0y46ua5">
+      <bpmn:text>Role HOO chỉ monitor, không tham gia trực tiếp vào quy trình duyệt phiếu</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:association id="Association_10et2od" associationDirection="None" sourceRef="Flow_15" targetRef="TextAnnotation_0y46ua5" />
+    <bpmn:textAnnotation id="TextAnnotation_0j9mssw">
+      <bpmn:text>Tham gia quy trình duyệt YCMH, trực tiếp duyệt YCMH</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:association id="Association_0udfqh0" associationDirection="None" sourceRef="Flow_17" targetRef="TextAnnotation_0j9mssw" />
+    <bpmn:textAnnotation id="TextAnnotation_0ltoogt">
+      <bpmn:text>Role AM khi duyệt có nhu cầu hiển thị tổng giá trị YCMH.
+(Role quản lý NH thì không cần hiện)</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:association id="Association_00g5ybz" associationDirection="None" sourceRef="Flow_17" targetRef="TextAnnotation_0ltoogt" />
+    <bpmn:textAnnotation id="TextAnnotation_03yzj7d">
+      <bpmn:text>Đang xuất excel để xử lý nhanh data PO, sau đó import ngược hệ thống</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:textAnnotation id="TextAnnotation_1akd3ez">
+      <bpmn:text>Chụp hình PO/ đính kèm excel qua Email, zalo</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:textAnnotation id="TextAnnotation_1693780">
+      <bpmn:text>Tình huống: SL nhập &lt; SL PO, nhưng NH cảm thấy đã đủ về SL, không nhập hàng PO nữa.
+=&gt; Cần setup rule sau x day sẽ auto đóng PO</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:association id="Association_1pdk2uw" associationDirection="None" sourceRef="Task_2" targetRef="TextAnnotation_1k3irfp" />
+    <bpmn:association id="Association_1lxhyyx" associationDirection="None" sourceRef="Task_10" targetRef="TextAnnotation_03yzj7d" />
+    <bpmn:association id="Association_1hs5lmf" associationDirection="None" sourceRef="Task_12" targetRef="TextAnnotation_1akd3ez" />
+    <bpmn:association id="Association_0d833g0" associationDirection="None" sourceRef="Activity_1019d1e" targetRef="TextAnnotation_1693780" />
+  </bpmn:collaboration>
+  <bpmn:process id="Process_1" isExecutable="false">
+    <bpmn:laneSet id="LaneSet_1">
+      <bpmn:lane id="Lane_NhaHang" name="Nhà hàng (Quản lý nhà hàng)">
+        <bpmn:flowNodeRef>Task_1</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_2</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_3</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>StartEvent_1</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_15</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_14</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_5</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_15gdiei</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_5</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_F2" name="Hệ thống F2Tech">
+        <bpmn:flowNodeRef>Task_6</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_2</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_2</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_5</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_1</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_1</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_4</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_0x4ehml</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_1019d1e</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Event_1qkirhf</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_11</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_02odg1g</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_AM" name="Area Manager (AM)">
+        <bpmn:flowNodeRef>Task_7</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_3</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_3</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_4</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_HOO" name="Head of Operations (HOO)">
+        <bpmn:flowNodeRef>Task_8</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_4</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_ThuMua" name="Phòng Thu mua">
+        <bpmn:flowNodeRef>Task_10</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_12</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_0mh2qeh</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_NCC" name="Nhà cung cấp">
+        <bpmn:flowNodeRef>Task_13</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:userTask id="Task_7" name="8. Duyệt yêu cầu mua hàng">
+      <bpmn:documentation>F2 chỉ hỗ trợ 01 cấp duyệt nên chốt: công cụ dụng cụ và hàng tiêu hao duyệt trên F2 do AM chịu trách nhiệm, không xét theo hạn mức giá trị. Trang thiết bị (máy móc) vẫn đặt và duyệt trên OneOffice theo ma trận hạn mức AM / HOO / CFO / CEO.</bpmn:documentation>
+      <bpmn:incoming>Flow_11</bpmn:incoming>
+      <bpmn:outgoing>Flow_12</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="Gateway_3" name="Duyệt yêu cầu?">
+      <bpmn:incoming>Flow_12</bpmn:incoming>
+      <bpmn:outgoing>Flow_13</bpmn:outgoing>
+      <bpmn:outgoing>Flow_14</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="End_3" name="Từ chối yêu cầu">
+      <bpmn:incoming>Flow_14</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:parallelGateway id="Gateway_4">
+      <bpmn:incoming>Flow_13</bpmn:incoming>
+      <bpmn:outgoing>Flow_15</bpmn:outgoing>
+      <bpmn:outgoing>Flow_17</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:serviceTask id="Task_6" name="7. Cho phép tạo phiếu và chuyển yêu cầu sang trạng thái chờ duyệt">
+      <bpmn:documentation>Trạng thái phiếu: Chờ duyệt - Đã duyệt - Xử lý đặt hàng.</bpmn:documentation>
+      <bpmn:incoming>Flow_9</bpmn:incoming>
+      <bpmn:outgoing>Flow_11</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gateway_2" name="SL tối đa - SL tồn ?">
+      <bpmn:incoming>Flow_8</bpmn:incoming>
+      <bpmn:outgoing>Flow_9</bpmn:outgoing>
+      <bpmn:outgoing>Flow_10</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="End_2" name="Không cho tạo YCMH">
+      <bpmn:documentation>Nhà hàng phải kiểm kê và cân lại tồn kho hệ thống, sau đó tạo lại yêu cầu mua hàng.</bpmn:documentation>
+      <bpmn:incoming>Flow_10</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:serviceTask id="Task_5" name="6. Kiểm tra định mức tồn kho tối đa (theo tồn kho hệ thống)">
+      <bpmn:documentation>Số lượng được đặt tối đa = Định mức tồn kho tối đa của nhà hàng trừ Tồn kho hệ thống. Định mức (định biên) khai báo riêng theo từng nhà hàng và từng mã công cụ dụng cụ; dịp lễ tết thì cập nhật lại định mức thay vì mở chặn.</bpmn:documentation>
+      <bpmn:incoming>Flow_6</bpmn:incoming>
+      <bpmn:outgoing>Flow_8</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gateway_1" name="Thời gian ?">
+      <bpmn:incoming>Flow_5</bpmn:incoming>
+      <bpmn:outgoing>Flow_6</bpmn:outgoing>
+      <bpmn:outgoing>Flow_7</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="End_1" name="Không cho tạo YCMH">
+      <bpmn:documentation>Trường hợp phát sinh cấp bách (ví dụ vỡ hỏng số lượng lớn) mới được xem xét đặt bổ sung; không chấp nhận bổ sung lắt nhắt. Quy tắc bổ sung còn chờ chốt cuối.</bpmn:documentation>
+      <bpmn:incoming>Flow_7</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:serviceTask id="Task_4" name="5. Kiểm tra thời gian tạo YCMH loại CCDC">
+      <bpmn:documentation>Quy tắc thời gian: tạo từ ngày 01 đến ngày 07 thì hàng về trước ngày 25 cùng tháng; tạo từ ngày 08 đến ngày 15 thì hàng về trước ngày 05 tháng sau; từ ngày 16 trở đi hệ thống không cho tạo yêu cầu mua hàng loại công cụ dụng cụ.</bpmn:documentation>
+      <bpmn:incoming>Flow_4</bpmn:incoming>
+      <bpmn:outgoing>Flow_5</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:manualTask id="Task_1" name="1. Kiểm đếm công cụ dụng cụ định kỳ">
+      <bpmn:documentation>Nhà hàng tự kiểm kê thực tế công cụ dụng cụ và tự chịu trách nhiệm về số liệu. Kế toán kiểm kê đối chiếu định kỳ 01 quý/lần.</bpmn:documentation>
+      <bpmn:incoming>Flow_1</bpmn:incoming>
+      <bpmn:outgoing>Flow_2</bpmn:outgoing>
+    </bpmn:manualTask>
+    <bpmn:userTask id="Task_2" name="2. Lập phiếu kiểm kê hàng hóa">
+      <bpmn:documentation>Chênh lệch giữa tồn kho hệ thống và tồn kho thực tế chỉ được điều chỉnh qua biên bản kiểm kê. Người dùng không được nhập tay số lượng tồn thực tế trên phiếu yêu cầu mua hàng; tồn kho chỉ biến động qua các giao dịch kiểm kê, nhập hàng, xuất hàng, bán hàng.</bpmn:documentation>
+      <bpmn:incoming>Flow_2</bpmn:incoming>
+      <bpmn:outgoing>Flow_187wm35</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_3" name="4. Tạo yêu cầu mua hàng (YCMH) loại công cụ dụng cụ (CCDC)">
+      <bpmn:documentation>Phiếu yêu cầu mua hàng phải chọn Loại yêu cầu (Công cụ dụng cụ / Nguyên vật liệu / Hàng tiêu hao). Khi chọn Công cụ dụng cụ, hệ thống chỉ nạp danh mục mã thuộc loại này, không cho trộn lẫn nguyên vật liệu. Người tạo: Quản lý nhà hàng.</bpmn:documentation>
+      <bpmn:incoming>Flow_3</bpmn:incoming>
+      <bpmn:outgoing>Flow_4</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="Activity_0x4ehml" name="3. Cập nhật tồn kho theo phiếu kiểm kê">
+      <bpmn:documentation>Hệ thống tự động cập nhật tồn kho hệ thống theo số liệu trên phiếu kiểm kê đã lập, làm căn cứ duy nhất để tính định mức đặt hàng ở bước sau. Đây là kênh hợp lệ duy nhất để điều chỉnh tồn kho ngoài các giao dịch nhập/xuất/bán hàng.</bpmn:documentation>
+      <bpmn:incoming>Flow_187wm35</bpmn:incoming>
+      <bpmn:outgoing>Flow_3</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:startEvent id="StartEvent_1">
+      <bpmn:documentation>Chu kỳ đặt công cụ dụng cụ: 01 lần/tháng, mở vào đầu tháng. Không áp dụng cho nguyên vật liệu và hàng tiêu hao (tiêu hao đặt 01 lần/tuần).</bpmn:documentation>
+      <bpmn:outgoing>Flow_1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="Task_8" name="9. Xuất báo cáo giám sát chi phí công cụ dụng cụ">
+      <bpmn:documentation>HOO chỉ giám sát ngoài luồng duyệt (monitor), không chèn thêm bước phê duyệt để tránh quy trình cồng kềnh. Áp dụng chặt trong 02 tháng đầu với nhà hàng mới mở; phát hiện bất thường thì yêu cầu nhà hàng giải trình.</bpmn:documentation>
+      <bpmn:incoming>Flow_15</bpmn:incoming>
+      <bpmn:outgoing>Flow_16</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:endEvent id="End_4" name="Kết thúc giám sát">
+      <bpmn:incoming>Flow_16</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:userTask id="Task_15" name="15. Phản hồi với Bộ phận thu mua">
+      <bpmn:documentation>Nhà hàng phản hồi khi thiếu hàng cần bổ sung hoặc lệch vượt dung sai. Cần bắt buộc ghi nhận trên hệ thống để đo được tỷ lệ giao thiếu, giao trễ của nhà cung cấp.</bpmn:documentation>
+      <bpmn:incoming>Flow_25</bpmn:incoming>
+      <bpmn:outgoing>Flow_26</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_14" name="14. Nhận hàng NCC và nhập hàng theo PO">
+      <bpmn:documentation>Bắt buộc nhập kho kế thừa từ đơn hàng để truy vết nhập kho - đơn hàng - yêu cầu mua hàng và đo được chỉ số OTIF. Không lập phiếu nhập mua thủ công ngoài đơn hàng. Một đơn hàng cho phép nhập nhiều lần.</bpmn:documentation>
+      <bpmn:incoming>Flow_22</bpmn:incoming>
+      <bpmn:outgoing>Flow_23</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="Gateway_5" name="Tình trạng giao hàng ?">
+      <bpmn:documentation>Dung sai cho phép 5% với hàng cân đong, tương ứng mục tiêu OTIF 95%. Hiện chưa thiết lập trên hệ thống.</bpmn:documentation>
+      <bpmn:incoming>Flow_23</bpmn:incoming>
+      <bpmn:outgoing>Flow_25</bpmn:outgoing>
+      <bpmn:outgoing>Flow_24</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="Activity_15gdiei" name="18. Nhập hàng theo hướng chốt của Thu mua">
+      <bpmn:documentation>Nhà hàng nhập kho theo phương án Thu mua đã chốt với nhà cung cấp (giao bù, đổi nhà cung cấp dự phòng, hoặc chấp nhận số lượng thực nhận). Đây là bước kết thúc nhánh xử lý ngoại lệ giao thiếu/giao lệch, khép lại vòng lặp với bước nhận hàng ban đầu.</bpmn:documentation>
+      <bpmn:incoming>Flow_067lbkt</bpmn:incoming>
+      <bpmn:outgoing>Flow_29</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="Activity_1019d1e" name="17. Hoàn tất GRPO và đóng PO">
+      <bpmn:documentation>Cần bổ sung quy tắc tự động đóng đơn hàng còn treo sau số ngày quy định để tránh tồn đọng đơn rác. Quy tắc cụ thể và người chịu trách nhiệm đóng đơn còn chờ chốt.</bpmn:documentation>
+      <bpmn:incoming>Flow_24</bpmn:incoming>
+      <bpmn:outgoing>Flow_1r7x953</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="Event_1qkirhf">
+      <bpmn:incoming>Flow_1r7x953</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="End_5">
+      <bpmn:incoming>Flow_29</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:userTask id="Task_10" name="10. Review YCMH và bấm tạo PO">
+      <bpmn:documentation>Thao tác vận hành lặp lại mỗi kỳ: Thu mua vào xem các yêu cầu mua hàng đã ở trạng thái Đã duyệt và chuyển trạng thái sang Xử lý đặt hàng để hệ thống gom PO. Đây là bước bàn giao (handoff) từ AM sang Thu mua, cần giữ làm bước riêng để theo dõi tiến độ xử lý.</bpmn:documentation>
+      <bpmn:incoming>Flow_17</bpmn:incoming>
+      <bpmn:outgoing>Flow_18b</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="Task_11" name="11. Tạo ra các PO theo NCC">
+      <bpmn:documentation>Hệ thống gom nhiều yêu cầu mua hàng cùng nhà cung cấp thành 01 đơn hàng tổng để Thu mua đặt hàng, đồng thời tách thành các đơn hàng con theo từng nhà hàng để nhà hàng nhập kho kế thừa. Vướng mắc: đơn hàng tổng chưa hiển thị số hiệu các đơn con, chưa theo dõi được nhà hàng nào đã nhập.</bpmn:documentation>
+      <bpmn:incoming>Flow_18</bpmn:incoming>
+      <bpmn:outgoing>Flow_20</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Activity_02odg1g" name="12. Tách ra các PO cho từng Nhà hàng">
+      <bpmn:documentation>Hệ thống gom nhiều yêu cầu mua hàng cùng nhà cung cấp thành 01 đơn hàng tổng để Thu mua đặt hàng, đồng thời tách thành các đơn hàng con theo từng nhà hàng để nhà hàng nhập kho kế thừa. Vướng mắc: đơn hàng tổng chưa hiển thị số hiệu các đơn con, chưa theo dõi được nhà hàng nào đã nhập.</bpmn:documentation>
+      <bpmn:incoming>Flow_20</bpmn:incoming>
+      <bpmn:outgoing>Flow_0njwthj</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:userTask id="Task_12" name="13. Gửi đơn đặt hàng cho NCC">
+      <bpmn:documentation>Hiện trạng: Thu mua xuất Excel, lọc theo nhà cung cấp, cắt hình gửi Zalo do phải cân chỉnh MOQ và giá. Yêu cầu chuẩn hóa: khai báo MOQ theo nhà cung cấp và quy tắc gộp đơn thành business rule để hệ thống xuất được đơn hàng dùng trực tiếp. Lịch giao theo thỏa thuận với nhà cung cấp (ví dụ D+2, D+3).</bpmn:documentation>
+      <bpmn:incoming>Flow_0njwthj</bpmn:incoming>
+      <bpmn:outgoing>Flow_21</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:manualTask id="Task_13" name="13. Xác nhận đơn và giao hàng đến nhà hàng">
+      <bpmn:documentation>Nhà cung cấp xác nhận đơn là mặc định sẽ giao. Hiện chưa có cơ chế phản hồi giao đúng hạn trên hệ thống; trễ hạn chỉ biết khi nhà hàng phản ánh.</bpmn:documentation>
+      <bpmn:incoming>Flow_21</bpmn:incoming>
+      <bpmn:outgoing>Flow_22</bpmn:outgoing>
+    </bpmn:manualTask>
+    <bpmn:subProcess id="Activity_0mh2qeh" name="16. Xử lý với NCC và phản hồi cho Nhà hàng">
+      <bpmn:documentation>Thu mua đôn đốc nhà cung cấp giao bù hàng thiếu, hoặc chuyển sang nhà cung cấp dự phòng nếu nhà cung cấp chính không đáp ứng được, sau đó phản hồi phương án xử lý cho nhà hàng.</bpmn:documentation>
+      <bpmn:incoming>Flow_26</bpmn:incoming>
+      <bpmn:outgoing>Flow_067lbkt</bpmn:outgoing>
+    </bpmn:subProcess>
+    <bpmn:sequenceFlow id="Flow_11" sourceRef="Task_6" targetRef="Task_7" />
+    <bpmn:sequenceFlow id="Flow_12" sourceRef="Task_7" targetRef="Gateway_3" />
+    <bpmn:sequenceFlow id="Flow_13" name="Đồng ý duyệt" sourceRef="Gateway_3" targetRef="Gateway_4" />
+    <bpmn:sequenceFlow id="Flow_14" name="Từ chối duyệt" sourceRef="Gateway_3" targetRef="End_3" />
+    <bpmn:sequenceFlow id="Flow_15" name="Bộ phận HOO" sourceRef="Gateway_4" targetRef="Task_8" />
+    <bpmn:sequenceFlow id="Flow_17" name="Bộ phận Thu mua" sourceRef="Gateway_4" targetRef="Task_10" />
+    <bpmn:sequenceFlow id="Flow_9" name="&#62; 0" sourceRef="Gateway_2" targetRef="Task_6" />
+    <bpmn:sequenceFlow id="Flow_8" sourceRef="Task_5" targetRef="Gateway_2" />
+    <bpmn:sequenceFlow id="Flow_10" name="= 0" sourceRef="Gateway_2" targetRef="End_2" />
+    <bpmn:sequenceFlow id="Flow_6" name="Nằm trong 2 khoảng&#10;[1 - 7] và [8 - 15]" sourceRef="Gateway_1" targetRef="Task_5" />
+    <bpmn:sequenceFlow id="Flow_5" sourceRef="Task_4" targetRef="Gateway_1" />
+    <bpmn:sequenceFlow id="Flow_7" name="Khác khoảng thời gian" sourceRef="Gateway_1" targetRef="End_1" />
+    <bpmn:sequenceFlow id="Flow_4" sourceRef="Task_3" targetRef="Task_4" />
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="StartEvent_1" targetRef="Task_1" />
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="Task_1" targetRef="Task_2" />
+    <bpmn:sequenceFlow id="Flow_187wm35" sourceRef="Task_2" targetRef="Activity_0x4ehml" />
+    <bpmn:sequenceFlow id="Flow_3" sourceRef="Activity_0x4ehml" targetRef="Task_3" />
+    <bpmn:sequenceFlow id="Flow_16" sourceRef="Task_8" targetRef="End_4" />
+    <bpmn:sequenceFlow id="Flow_25" name="Không có hàng/ lệch SL nhiều so với PO" sourceRef="Gateway_5" targetRef="Task_15" />
+    <bpmn:sequenceFlow id="Flow_26" sourceRef="Task_15" targetRef="Activity_0mh2qeh" />
+    <bpmn:sequenceFlow id="Flow_22" sourceRef="Task_13" targetRef="Task_14" />
+    <bpmn:sequenceFlow id="Flow_23" sourceRef="Task_14" targetRef="Gateway_5" />
+    <bpmn:sequenceFlow id="Flow_24" name="Nhận đủ&#10;(chênh lệch 5% so với thực tế đặt hàng)" sourceRef="Gateway_5" targetRef="Activity_1019d1e" />
+    <bpmn:sequenceFlow id="Flow_067lbkt" sourceRef="Activity_0mh2qeh" targetRef="Activity_15gdiei" />
+    <bpmn:sequenceFlow id="Flow_29" sourceRef="Activity_15gdiei" targetRef="End_5" />
+    <bpmn:sequenceFlow id="Flow_1r7x953" sourceRef="Activity_1019d1e" targetRef="Event_1qkirhf" />
+    <bpmn:sequenceFlow id="Flow_18b" sourceRef="Task_10" targetRef="Task_11" />
+    <bpmn:sequenceFlow id="Flow_20" sourceRef="Task_11" targetRef="Activity_02odg1g" />
+    <bpmn:sequenceFlow id="Flow_0njwthj" sourceRef="Activity_02odg1g" targetRef="Task_12" />
+    <bpmn:sequenceFlow id="Flow_21" sourceRef="Task_12" targetRef="Task_13" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Collaboration_1">
+      <bpmndi:BPMNShape id="Shape_Pool" bpmnElement="Participant_Pool" isHorizontal="true">
+        <dc:Bounds x="160" y="80" width="3890" height="1560" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_NhaHang" bpmnElement="Lane_NhaHang" isHorizontal="true">
+        <dc:Bounds x="190" y="80" width="3860" height="320" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_F2" bpmnElement="Lane_F2" isHorizontal="true">
+        <dc:Bounds x="190" y="400" width="3860" height="320" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_AM" bpmnElement="Lane_AM" isHorizontal="true">
+        <dc:Bounds x="190" y="720" width="3860" height="320" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_HOO" bpmnElement="Lane_HOO" isHorizontal="true">
+        <dc:Bounds x="190" y="1040" width="3860" height="200" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_ThuMua" bpmnElement="Lane_ThuMua" isHorizontal="true">
+        <dc:Bounds x="190" y="1240" width="3860" height="200" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_NCC" bpmnElement="Lane_NCC" isHorizontal="true">
+        <dc:Bounds x="190" y="1440" width="3860" height="200" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_7" bpmnElement="Task_7">
+        <dc:Bounds x="1660" y="780" width="120" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Gateway_3" bpmnElement="Gateway_3" isMarkerVisible="true">
+        <dc:Bounds x="1865" y="795" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1852" y="773" width="77" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_3" bpmnElement="End_3">
+        <dc:Bounds x="1872" y="922" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1851" y="965" width="79" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Gateway_4" bpmnElement="Gateway_4">
+        <dc:Bounds x="2035" y="795" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2010" y="755" width="100" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_6" bpmnElement="Task_6">
+        <dc:Bounds x="1660" y="460" width="120" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Gateway_2" bpmnElement="Gateway_2" isMarkerVisible="true">
+        <dc:Bounds x="1505" y="475" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1483" y="453" width="95" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_2" bpmnElement="End_2">
+        <dc:Bounds x="1512" y="602" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1495" y="645" width="71" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_5" bpmnElement="Task_5">
+        <dc:Bounds x="1300" y="460" width="120" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Gateway_1" bpmnElement="Gateway_1" isMarkerVisible="true">
+        <dc:Bounds x="1075" y="475" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1072" y="453" width="56" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_1" bpmnElement="End_1">
+        <dc:Bounds x="1082" y="602" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1065" y="645" width="71" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_4" bpmnElement="Task_4">
+        <dc:Bounds x="880" y="460" width="120" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_1" bpmnElement="Task_1">
+        <dc:Bounds x="360" y="140" width="120" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_2" bpmnElement="Task_2">
+        <dc:Bounds x="530" y="140" width="120" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_3" bpmnElement="Task_3">
+        <dc:Bounds x="700" y="140" width="120" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_14p824n" bpmnElement="Activity_0x4ehml">
+        <dc:Bounds x="530" y="460" width="120" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_StartEvent_1" bpmnElement="StartEvent_1">
+        <dc:Bounds x="292" y="162" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="212" y="205" width="80" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_8" bpmnElement="Task_8">
+        <dc:Bounds x="2000" y="1100" width="120" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_4" bpmnElement="End_4">
+        <dc:Bounds x="2182" y="1122" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2158" y="1165" width="85" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_15" bpmnElement="Task_15">
+        <dc:Bounds x="3370" y="260" width="120" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_14" bpmnElement="Task_14">
+        <dc:Bounds x="2990" y="140" width="120" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Gateway_5" bpmnElement="Gateway_5" isMarkerVisible="true">
+        <dc:Bounds x="3195" y="155" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3184" y="126" width="74" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_131mnz6" bpmnElement="Activity_15gdiei">
+        <dc:Bounds x="3550" y="260" width="120" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_1a4e9og" bpmnElement="Activity_1019d1e">
+        <dc:Bounds x="3770" y="450" width="120" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_09u1szn" bpmnElement="Event_1qkirhf">
+        <dc:Bounds x="3942" y="472" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3542" y="255" width="77" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End_5" bpmnElement="End_5">
+        <dc:Bounds x="3722" y="282" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3458" y="455" width="85" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_10" bpmnElement="Task_10">
+        <dc:Bounds x="2240" y="1300" width="120" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_11" bpmnElement="Task_11">
+        <dc:Bounds x="2560" y="460" width="120" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_1nmijeu" bpmnElement="Activity_02odg1g">
+        <dc:Bounds x="2740" y="460" width="120" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_12" bpmnElement="Task_12">
+        <dc:Bounds x="2740" y="1300" width="120" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_13" bpmnElement="Task_13">
+        <dc:Bounds x="2740" y="1500" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0mh2qeh_di" bpmnElement="Activity_0mh2qeh">
+        <dc:Bounds x="3380" y="1300" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_Flow_11" bpmnElement="Flow_11">
+        <di:waypoint x="1720" y="540" />
+        <di:waypoint x="1720" y="780" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_12" bpmnElement="Flow_12">
+        <di:waypoint x="1780" y="820" />
+        <di:waypoint x="1865" y="820" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_13" bpmnElement="Flow_13">
+        <di:waypoint x="1915" y="820" />
+        <di:waypoint x="2035" y="820" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1937" y="803" width="65" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_14" bpmnElement="Flow_14">
+        <di:waypoint x="1890" y="845" />
+        <di:waypoint x="1890" y="922" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1896" y="873" width="68" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_15" bpmnElement="Flow_15">
+        <di:waypoint x="2060" y="845" />
+        <di:waypoint x="2060" y="1100" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2070" y="863" width="70" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_17" bpmnElement="Flow_17">
+        <di:waypoint x="2085" y="820" />
+        <di:waypoint x="2300" y="820" />
+        <di:waypoint x="2300" y="1300" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2098" y="803" width="88" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_9" bpmnElement="Flow_9">
+        <di:waypoint x="1555" y="500" />
+        <di:waypoint x="1660" y="500" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1600" y="483" width="16" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_8" bpmnElement="Flow_8">
+        <di:waypoint x="1420" y="500" />
+        <di:waypoint x="1505" y="500" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_10" bpmnElement="Flow_10">
+        <di:waypoint x="1530" y="525" />
+        <di:waypoint x="1530" y="602" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1542" y="554" width="16" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_6" bpmnElement="Flow_6">
+        <di:waypoint x="1125" y="500" />
+        <di:waypoint x="1300" y="500" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1155" y="460" width="100" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_5" bpmnElement="Flow_5">
+        <di:waypoint x="1000" y="500" />
+        <di:waypoint x="1075" y="500" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_7" bpmnElement="Flow_7">
+        <di:waypoint x="1100" y="525" />
+        <di:waypoint x="1100" y="602" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1103" y="547" width="74" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_4" bpmnElement="Flow_4">
+        <di:waypoint x="820" y="180" />
+        <di:waypoint x="940" y="180" />
+        <di:waypoint x="940" y="460" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_1" bpmnElement="Flow_1">
+        <di:waypoint x="328" y="180" />
+        <di:waypoint x="360" y="180" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_2" bpmnElement="Flow_2">
+        <di:waypoint x="480" y="180" />
+        <di:waypoint x="530" y="180" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_187wm35_di" bpmnElement="Flow_187wm35">
+        <di:waypoint x="590" y="220" />
+        <di:waypoint x="590" y="460" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_3" bpmnElement="Flow_3">
+        <di:waypoint x="650" y="500" />
+        <di:waypoint x="760" y="500" />
+        <di:waypoint x="760" y="220" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_16" bpmnElement="Flow_16">
+        <di:waypoint x="2120" y="1140" />
+        <di:waypoint x="2182" y="1140" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_18b" bpmnElement="Flow_18b">
+        <di:waypoint x="2360" y="1340" />
+        <di:waypoint x="2620" y="1340" />
+        <di:waypoint x="2620" y="540" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0njwthj_di" bpmnElement="Flow_0njwthj">
+        <di:waypoint x="2800" y="540" />
+        <di:waypoint x="2800" y="1300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_21" bpmnElement="Flow_21">
+        <di:waypoint x="2800" y="1380" />
+        <di:waypoint x="2800" y="1500" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_22" bpmnElement="Flow_22">
+        <di:waypoint x="2860" y="1540" />
+        <di:waypoint x="3050" y="1540" />
+        <di:waypoint x="3050" y="220" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_25" bpmnElement="Flow_25">
+        <di:waypoint x="3220" y="205" />
+        <di:waypoint x="3220" y="300" />
+        <di:waypoint x="3370" y="300" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3223" y="266" width="114" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_26" bpmnElement="Flow_26">
+        <di:waypoint x="3430" y="340" />
+        <di:waypoint x="3430" y="1300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_23" bpmnElement="Flow_23">
+        <di:waypoint x="3110" y="180" />
+        <di:waypoint x="3195" y="180" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_24" bpmnElement="Flow_24">
+        <di:waypoint x="3245" y="180" />
+        <di:waypoint x="3830" y="180" />
+        <di:waypoint x="3830" y="450" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3321" y="146" width="218" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_067lbkt_di" bpmnElement="Flow_067lbkt">
+        <di:waypoint x="3480" y="1340" />
+        <di:waypoint x="3610" y="1340" />
+        <di:waypoint x="3610" y="340" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_29_di" bpmnElement="Flow_29">
+        <di:waypoint x="3670" y="300" />
+        <di:waypoint x="3722" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1r7x953_di" bpmnElement="Flow_1r7x953">
+        <di:waypoint x="3890" y="490" />
+        <di:waypoint x="3942" y="490" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_20" bpmnElement="Flow_20">
+        <di:waypoint x="2680" y="500" />
+        <di:waypoint x="2740" y="500" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Association_0nmgzh8_di" bpmnElement="Association_0nmgzh8">
+        <di:waypoint x="1213" y="500" />
+        <di:waypoint x="1251" y="590" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Association_1pdk2uw_di" bpmnElement="Association_1pdk2uw">
+        <di:waypoint x="562" y="220" />
+        <di:waypoint x="510" y="296" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Association_10et2od_di" bpmnElement="Association_10et2od">
+        <di:waypoint x="2060" y="920" />
+        <di:waypoint x="2113" y="960" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Association_0udfqh0_di" bpmnElement="Association_0udfqh0">
+        <di:waypoint x="2300" y="920" />
+        <di:waypoint x="2367" y="960" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Association_00g5ybz_di" bpmnElement="Association_00g5ybz">
+        <di:waypoint x="2300" y="830" />
+        <di:waypoint x="2350" y="845" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Association_1lxhyyx_di" bpmnElement="Association_1lxhyyx">
+        <di:waypoint x="2360" y="1360" />
+        <di:waypoint x="2395" y="1380" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Association_1hs5lmf_di" bpmnElement="Association_1hs5lmf">
+        <di:waypoint x="2860" y="1368" />
+        <di:waypoint x="2887" y="1380" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Association_0d833g0_di" bpmnElement="Association_0d833g0">
+        <di:waypoint x="3773" y="527" />
+        <di:waypoint x="3721" y="560" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="TextAnnotation_1k3irfp_di" bpmnElement="TextAnnotation_1k3irfp">
+        <dc:Bounds x="330" y="290" width="180" height="57" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TextAnnotation_0p5sndn_di" bpmnElement="TextAnnotation_0p5sndn">
+        <dc:Bounds x="1210" y="590" width="232.96191623424758" height="86" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TextAnnotation_0y46ua5_di" bpmnElement="TextAnnotation_0y46ua5">
+        <dc:Bounds x="2090" y="960" width="152.96052631578948" height="57" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TextAnnotation_0j9mssw_di" bpmnElement="TextAnnotation_0j9mssw">
+        <dc:Bounds x="2350" y="960" width="140" height="57" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TextAnnotation_0ltoogt_di" bpmnElement="TextAnnotation_0ltoogt">
+        <dc:Bounds x="2350" y="840" width="215" height="57" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TextAnnotation_03yzj7d_di" bpmnElement="TextAnnotation_03yzj7d">
+        <dc:Bounds x="2380" y="1380" width="231" height="43" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TextAnnotation_1akd3ez_di" bpmnElement="TextAnnotation_1akd3ez">
+        <dc:Bounds x="2880" y="1380" width="150" height="43" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TextAnnotation_1693780_di" bpmnElement="TextAnnotation_1693780">
+        <dc:Bounds x="3640" y="560" width="281.2699425654116" height="57" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_0qi5o9p">
+    <bpmndi:BPMNPlane id="BPMNPlane_043iopv" bpmnElement="Activity_0mh2qeh" />
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
