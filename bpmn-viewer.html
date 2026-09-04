@@ -75,7 +75,7 @@
   </div>
 </div>
 
-<script src="https://unpkg.com/bpmn-js@17.11.1/dist/bpmn-viewer.production.min.js"></script>
+<script src="https://unpkg.com/bpmn-js@17.11.1/dist/bpmn-navigated-viewer.production.min.js"></script>
 <script>
   const params = new URLSearchParams(window.location.search);
   const src = params.get('src');
@@ -162,6 +162,7 @@
       .then(() => {
         document.getElementById('loading').style.display = 'none';
         fitViewport();
+        enablePlainScrollZoom();
       })
       .catch(err => {
         showError(
@@ -181,6 +182,27 @@
       const canvas = viewer.get('canvas');
       canvas.zoom(canvas.zoom() * factor);
     }
+  }
+
+  // Mặc định bpmn-js: lăn chuột = pan, phải giữ Ctrl mới zoom.
+  // Đổi lại: lăn chuột thường = zoom luôn (tâm zoom tại vị trí con trỏ), khỏi cần giữ Ctrl.
+  function enablePlainScrollZoom(){
+    if(!viewer) return;
+    try{
+      // tắt hành vi scroll-to-pan / ctrl-scroll-to-zoom mặc định
+      viewer.get('zoomScroll').toggle(false);
+    }catch(e){ /* module có thể không tồn tại tùy bản build, bỏ qua */ }
+
+    const canvasEl = document.getElementById('canvas');
+    canvasEl.addEventListener('wheel', function(e){
+      if(!viewer) return;
+      e.preventDefault();
+      const canvas = viewer.get('canvas');
+      const rect = canvasEl.getBoundingClientRect();
+      const offset = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+      const factor = e.deltaY < 0 ? 1.1 : 0.9;
+      canvas.zoom(canvas.zoom() * factor, offset);
+    }, { passive: false });
   }
 </script>
 </body>
