@@ -1,0 +1,1307 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SOL — Quy trình Phòng ban (v5)</title>
+<style>
+  :root{
+    --bg:#f7f7f8; --panel:#ffffff; --panel2:#f2f3f5; --border:#e0e1e6;
+    --text:#1c1e24; --muted:#6b7280; --accent:#b8863d; --accent2:#8a6221;
+    --red:#8b1e2b;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; font-family:"Segoe UI",Helvetica,Arial,sans-serif;
+    background:#f7f7f8;
+    color:var(--text); min-height:100vh;
+  }
+  header{
+    padding:28px 40px 18px; border-bottom:1px solid var(--border);
+    display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;
+  }
+  header .brand{display:flex; align-items:center; gap:14px;}
+  header .brand .logo{
+    width:42px;height:42px;border-radius:10px;
+    background:linear-gradient(135deg,var(--accent),var(--red));
+    display:flex;align-items:center;justify-content:center;font-weight:700;color:#111;
+  }
+  header h1{font-size:20px; margin:0; letter-spacing:.3px;}
+  header p{margin:2px 0 0; color:var(--muted); font-size:13px;}
+  .crumbs-wrap{display:flex; align-items:center; gap:12px; flex-wrap:wrap;}
+  .crumbs{font-size:13px; color:var(--muted);}
+  .crumbs button{
+    background:none;border:none;color:var(--accent2);cursor:pointer;font-size:13px;padding:0;
+  }
+  .crumbs button:hover{text-decoration:underline;}
+  .admin-btn{
+    background:var(--panel); border:1px solid var(--border); color:var(--muted);
+    padding:6px 14px; border-radius:20px; font-size:12.5px; cursor:pointer; display:inline-flex; align-items:center; gap:6px;
+    transition:.15s;
+  }
+  .admin-btn:hover{ border-color:var(--accent2); color:var(--accent2); }
+  main{padding:28px 40px 60px; max-width:1280px; margin:0 auto;}
+
+  /* ---- Password modal ---- */
+  .modal-overlay{
+    display:none; position:fixed; inset:0; background:rgba(5,6,8,.7); backdrop-filter:blur(2px);
+    align-items:center; justify-content:center; z-index:100;
+  }
+  .modal-overlay.show{ display:flex; }
+  .modal-box{
+    background:var(--panel2); border:1px solid var(--border); border-radius:14px; padding:26px 28px;
+    width:100%; max-width:340px; box-shadow:0 10px 40px rgba(0,0,0,.5);
+  }
+  .modal-box h3{margin:0 0 6px; font-size:16px;}
+  .modal-box p{margin:0 0 16px; color:var(--muted); font-size:13px; line-height:1.5;}
+  .modal-box input{
+    width:100%; padding:10px 12px; border-radius:8px; border:1px solid var(--border);
+    background:var(--panel); color:var(--text); font-size:14px; letter-spacing:2px;
+  }
+  .modal-box input:focus{ outline:none; border-color:var(--accent2); }
+  .modal-actions{display:flex; gap:10px; margin-top:18px;}
+  .modal-btn{
+    flex:1; padding:9px 0; border-radius:8px; border:1px solid var(--border); cursor:pointer; font-size:13.5px; font-weight:600;
+  }
+  .modal-btn.cancel{ background:var(--panel); color:var(--text); }
+  .modal-btn.cancel:hover{ border-color:var(--muted); }
+  .modal-btn.confirm{ background:linear-gradient(135deg,var(--accent),var(--accent2)); color:#111; border:none; }
+  .modal-btn.confirm:hover{ filter:brightness(1.08); }
+  .modal-error{ margin-top:14px; color:#e0707a; font-size:12.5px; }
+
+  /* ---- Page 3 (Admin) ---- */
+  #page3{display:none;}
+  .admin-process-list{ display:flex; flex-direction:column; gap:10px; }
+  .admin-process-row{
+    background:var(--panel); border:1px solid var(--border); border-radius:10px;
+    padding:12px 16px; display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+  }
+  .admin-process-row .apr-name{ font-weight:600; font-size:13.8px; min-width:230px; flex:1 1 230px; }
+  .admin-process-row input{
+    flex:2 1 320px; padding:8px 12px; border-radius:8px; border:1px solid var(--border);
+    background:var(--panel2); color:var(--text); font-size:13px;
+  }
+  .admin-process-row input:focus{ outline:none; border-color:var(--accent2); }
+  .admin-save-btn{
+    background:var(--accent); color:#111; border:none; padding:8px 16px; border-radius:8px;
+    font-size:12.5px; font-weight:700; cursor:pointer; white-space:nowrap;
+  }
+  .admin-save-btn:hover{ filter:brightness(1.08); }
+  .admin-saved-tag{ font-size:11.5px; color:#7fd08a; margin-left:4px; opacity:0; transition:opacity .2s; }
+  .admin-saved-tag.show{ opacity:1; }
+
+  /* ---- Page 1 ---- */
+  #page1{}
+  .section-title{font-size:14px; color:var(--muted); text-transform:uppercase; letter-spacing:1.5px; margin:0 0 14px;}
+  .dept-grid{
+    display:grid; grid-template-columns:repeat(auto-fill,minmax(190px,1fr)); gap:14px;
+  }
+  .dept-card{
+    background:var(--panel); border:1px solid var(--border); border-radius:12px;
+    padding:18px 16px; cursor:pointer; transition:.15s; position:relative; overflow:hidden;
+  }
+  .dept-card:hover{ border-color:var(--accent); transform:translateY(-2px); }
+  .dept-card.active{ border-color:var(--accent2); background:var(--panel2); box-shadow:0 0 0 1px var(--accent2) inset; }
+  .dept-card .icon{font-size:24px; margin-bottom:8px; display:block;}
+  .dept-card .name{font-weight:600; font-size:14.5px; line-height:1.3;}
+  .dept-card .count{color:var(--muted); font-size:12px; margin-top:6px;}
+  .dept-card .block{
+    position:absolute; top:10px; right:10px; font-size:10px; color:var(--muted);
+    border:1px solid var(--border); border-radius:6px; padding:2px 6px;
+  }
+
+  .process-panel{
+    margin-top:26px; border-top:1px solid var(--border); padding-top:22px;
+    display:none;
+  }
+  .process-panel.show{display:block; animation:fade .2s ease;}
+  @keyframes fade{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);}}
+  .process-panel-head{display:flex; align-items:baseline; gap:10px; margin-bottom:4px;}
+  .process-panel-head h2{margin:0; font-size:19px;}
+  .process-panel-head .tag{
+    font-size:11px; color:var(--muted); border:1px solid var(--border); padding:2px 8px; border-radius:20px;
+  }
+  .process-note{color:var(--muted); font-size:13px; margin:4px 0 16px;}
+  .process-list{
+    display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:12px;
+  }
+  .process-item{
+    background:var(--panel); border:1px solid var(--border); border-radius:10px;
+    padding:14px 16px; cursor:pointer; transition:.15s;
+  }
+  .process-item:hover{ border-color:var(--accent2); background:var(--panel2); }
+  .process-item .p-name{font-weight:600; font-size:14px;}
+  .process-item .p-desc{color:var(--muted); font-size:12.5px; margin-top:6px; line-height:1.5;}
+  .process-item .p-meta{margin-top:8px; display:flex; gap:6px; flex-wrap:wrap;}
+  .chip{font-size:11px; color:var(--accent2); background:rgba(201,162,75,.1); border:1px solid rgba(201,162,75,.3); padding:2px 8px; border-radius:20px;}
+  .org-chart-item{ border-color:var(--accent); background:linear-gradient(135deg,rgba(184,134,61,.08),rgba(184,134,61,.02)); }
+  .org-chart-item:hover{ border-color:var(--accent2); }
+  .missing{color:#b06a6a; font-style:italic; font-size:12.5px;}
+
+  /* ---- Page 2 ---- */
+  #page2{display:none;}
+  .detail-header{margin-bottom:22px; display:flex; align-items:flex-start; justify-content:space-between; gap:16px; flex-wrap:wrap;}
+  .detail-header .dept-tag{color:var(--accent2); font-size:13px; font-weight:600; letter-spacing:.5px; text-transform:uppercase;}
+  .detail-header h2{margin:6px 0 8px; font-size:26px;}
+  .detail-header .summary{color:var(--muted); font-size:14.5px; max-width:800px; line-height:1.6;}
+  .detail-header-text{flex:1; min-width:260px;}
+  .detail-btn{
+    background:linear-gradient(135deg,var(--accent),var(--accent2)); color:#111; border:none;
+    padding:10px 18px; border-radius:8px; font-size:13.5px; font-weight:700; cursor:pointer;
+    display:inline-flex; align-items:center; gap:8px; white-space:nowrap; margin-top:2px;
+    box-shadow:0 2px 10px rgba(201,162,75,.25);
+  }
+  .detail-btn:hover{ filter:brightness(1.08); transform:translateY(-1px); }
+  .detail-btn:active{ transform:translateY(0); }
+  .detail-grid{display:grid; grid-template-columns:2fr 1fr; gap:22px; margin-top:24px;}
+  @media (max-width:860px){ .detail-grid{grid-template-columns:1fr;} }
+  .card{
+    background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:20px 22px; margin-bottom:20px;
+  }
+  .card h3{margin:0 0 14px; font-size:15px; color:var(--accent2); letter-spacing:.3px;}
+  .steps{list-style:none; margin:0; padding:0; counter-reset:step;}
+  .steps li{
+    counter-increment:step; padding:10px 0 10px 38px; position:relative; border-bottom:1px dashed var(--border); font-size:13.8px; line-height:1.55;
+  }
+  .steps li:last-child{border-bottom:none;}
+  .steps li::before{
+    content:counter(step); position:absolute; left:0; top:9px; width:24px; height:24px; border-radius:50%;
+    background:var(--accent); color:#111; font-size:12px; font-weight:700; display:flex; align-items:center; justify-content:center;
+  }
+  .kv{display:flex; flex-direction:column; gap:12px;}
+  .kv-row .k{font-size:11.5px; text-transform:uppercase; letter-spacing:.8px; color:var(--muted); margin-bottom:4px;}
+  .kv-row .v{font-size:13.8px; line-height:1.5;}
+  .sys-list, .sop-list{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:8px;}
+  .sys-list li{font-size:13.5px; background:var(--panel2); border:1px solid var(--border); border-radius:8px; padding:8px 12px;}
+  .sop-list li{font-size:13px; padding:8px 12px; background:var(--panel2); border:1px solid var(--border); border-radius:8px; word-break:break-word;}
+  .sop-list li .path{color:var(--muted); font-size:11.5px; display:block; margin-top:2px;}
+  .back-btn{
+    background:var(--panel); border:1px solid var(--border); color:var(--text); padding:8px 16px;
+    border-radius:8px; cursor:pointer; font-size:13px; margin-bottom:18px; display:inline-flex; align-items:center; gap:6px;
+  }
+  .back-btn:hover{border-color:var(--accent);}
+  footer{padding:20px 40px; color:var(--muted); font-size:12px; border-top:1px solid var(--border); text-align:center;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div class="logo">SOL</div>
+    <div>
+      <h1>Bản đồ Quy trình Phòng ban — Sense Of Life (v5)</h1>
+      <p>Tổng hợp từ tài liệu khảo sát/workshop nội bộ (docs/SOL)</p>
+    </div>
+  </div>
+  <div class="crumbs-wrap">
+    <div class="crumbs" id="crumbs">Trang chủ</div>
+    <button class="admin-btn" id="adminBtn" onclick="openAdminPrompt()">🔒 Admin</button>
+  </div>
+</header>
+
+<div class="modal-overlay" id="pwModalOverlay">
+  <div class="modal-box">
+    <h3>🔒 Xác thực Admin</h3>
+    <p>Nhập mật khẩu để truy cập trang quản trị.</p>
+    <input type="password" id="pwInput" placeholder="Mật khẩu" autocomplete="off" />
+    <div class="modal-error" id="pwError" style="display:none;">❌ Sai mật khẩu, bạn không có quyền truy cập.</div>
+    <div class="modal-actions">
+      <button class="modal-btn cancel" onclick="closePwModal()">Hủy</button>
+      <button class="modal-btn confirm" onclick="checkPassword()">Xác nhận</button>
+    </div>
+  </div>
+</div>
+
+<main>
+  <div id="page1">
+    <p class="section-title">Chọn phòng ban</p>
+    <div class="dept-grid" id="deptGrid"></div>
+    <div class="process-panel" id="processPanel">
+      <div class="process-panel-head">
+        <h2 id="ppTitle"></h2>
+        <span class="tag" id="ppKhoi"></span>
+      </div>
+      <p class="process-note" id="ppNote"></p>
+      <div class="process-list" id="processList"></div>
+    </div>
+  </div>
+
+  <div id="page2">
+    <button class="back-btn" onclick="goBack()">← Quay lại danh sách nghiệp vụ</button>
+    <div class="detail-header">
+      <div class="detail-header-text">
+        <div class="dept-tag" id="d2dept"></div>
+        <h2 id="d2title"></h2>
+        <div class="summary" id="d2summary"></div>
+      </div>
+      <button class="detail-btn" id="d2detailBtn" onclick="openDetailFlow()">📄 Quy trình chi tiết</button>
+    </div>
+    <div class="detail-grid">
+      <div>
+        <div class="card">
+          <h3>Mô tả quy trình từng bước</h3>
+          <ol class="steps" id="d2steps"></ol>
+        </div>
+      </div>
+      <div>
+        <div class="card">
+          <h3>Vai trò / Người phụ trách</h3>
+          <div class="kv" id="d2roles"></div>
+        </div>
+        <div class="card">
+          <h3>Hệ thống / Công cụ liên quan</h3>
+          <ul class="sys-list" id="d2systems"></ul>
+        </div>
+        <div class="card">
+          <h3>Tài liệu / SOP liên kết</h3>
+          <ul class="sop-list" id="d2sops"></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="page3">
+    <button class="back-btn" onclick="goBackFromAdmin()">← Quay lại trang chính</button>
+    <p class="section-title">🔧 Trang quản trị — Gán link "Quy trình chi tiết"</p>
+    <p class="process-note">Chọn phòng ban, sau đó nhập đường link HTML cho từng nghiệp vụ rồi bấm Xác nhận. Link sẽ được dùng khi bấm nút "Quy trình chi tiết" ở trang chi tiết nghiệp vụ.</p>
+    <div class="dept-grid" id="adminDeptGrid"></div>
+    <div class="process-panel" id="adminProcessPanel">
+      <div class="process-panel-head">
+        <h2 id="apTitle"></h2>
+        <span class="tag" id="apKhoi"></span>
+      </div>
+      <div class="admin-process-list" id="adminProcessList"></div>
+    </div>
+  </div>
+</main>
+
+<footer>Sense Of Life — 663-665 Điện Biên Phủ, P. Thạnh Mỹ Tây, TP.HCM · sol.com.vn · Dữ liệu tổng hợp nội bộ, cập nhật 14/08/2026</footer>
+
+<script>
+/* ============ DATA ============ */
+const DATA = {
+  hr:{
+    name:"Nhân sự (HR)", icon:"👥", khoi:"Khối Hỗ trợ Vận hành",
+    note:"Nguồn: 6.Workshop-Survey-ThucTe/Phan-tich-sau-survey-final/survey-HR-Final.md",
+    processes:[
+      {id:"hr-tuyendung", name:"Tuyển dụng (Talent Acquisition)",
+        desc:"Đề xuất tuyển theo định biên → sourcing/Google Form → phỏng vấn → onboarding → đánh giá thử việc & ký HĐLĐ.",
+        systems:["1Office (custom flow, ~25%)","Google Form","Excel"],
+        roles:[["HOD","Đề xuất nhu cầu tuyển"],["TA Team","Thực hiện tuyển dụng"],["HHR","Duyệt cuối"]],
+        steps:["HOD đề xuất tuyển theo định biên đã duyệt","TA Team đăng tin & sourcing ứng viên (Google Form)","Sàng lọc CV, sắp lịch phỏng vấn","Phỏng vấn (TA + quản lý trực tiếp)","Ra quyết định tuyển, gửi offer","Onboarding nhân viên mới","Đánh giá thử việc & ký HĐLĐ chính thức"],
+        sops:[["SOP-example-HR","1.Reference_DOC/SOP-example-HR.md"],["BRD Tuyển dụng khối NH-SX","8.Ms-Chi/Tuyen-Dung-Khoi-NhaHang-SanXuat/BRD-tuyen-dung-khoi-NH-SX-final.md"]]},
+      {id:"hr-dongphuc", name:"Quản lý đồng phục",
+        desc:"Cấp phát đồng phục khi nhận việc (đặt cọc 300k), thu hồi khi nghỉ việc.",
+        systems:["Giấy/Excel (chưa có hệ thống)"],
+        roles:[["Admin","Cấp phát/thu hồi"],["C&B","Theo dõi cọc"]],
+        steps:["NV mới nộp cọc 300k","Admin cấp phát đồng phục","Theo dõi tồn kho đồng phục theo size","Khi nghỉ việc: thu hồi đồng phục, hoàn/trừ cọc"],
+        sops:[]},
+      {id:"hr-chamcong", name:"Chấm công",
+        desc:"Gán ca tuần (AM/QM duyệt), xử lý quên chấm công/OT/ca gãy, xuất dữ liệu chấm công.",
+        systems:["Mitapro (FaceID, ~90%)","1Office (~80%)"],
+        roles:[["C&B","Xử lý dữ liệu chấm công"],["AM/QM","Duyệt lịch ca"],["NV","Chấm công hàng ngày"]],
+        steps:["AM/QM lên lịch ca tuần","NV chấm công qua máy FaceID (Mitapro)","Xử lý ngoại lệ: quên chấm công, OT, ca gãy","Đồng bộ/xuất dữ liệu sang 1Office","C&B đối chiếu để tính lương"],
+        sops:[["Quy trình MitaPro SOL end-to-end","10.May-cham-cong/Quy-trinh-MitaPro-SOL-end-to-end.md"],["Vai trò máy chấm công","10.May-cham-cong/vai-tro-may-cham-cong.md"]]},
+      {id:"hr-tinhluong", name:"Tính lương & phụ cấp",
+        desc:"Tính lương full-time/part-time, phụ cấp đặc thù, phạt trừ/thưởng, duyệt chi phối hợp Kế toán.",
+        systems:["Excel (backbone thực tế)","1Office (<20%)"],
+        roles:[["C&B Team","Tính & xử lý lương"],["Kế toán","Duyệt chi trả"]],
+        steps:["Tổng hợp dữ liệu chấm công đã đối chiếu","Tính lương cơ bản + phụ cấp + phạt/thưởng","Lập bảng lương (chủ yếu trên Excel)","Chuyển Kế toán duyệt & chi trả"],
+        sops:[]},
+      {id:"hr-bhxh", name:"Bảo hiểm xã hội (BHXH)",
+        desc:"Đăng ký mới, điều chỉnh mức đóng, báo giảm khi nghỉ việc.",
+        systems:["EFY (độc lập, không link 1Office)"],
+        roles:[["C&B chuyên viên","Thực hiện thủ tục BHXH"]],
+        steps:["Đăng ký BHXH cho NV mới","Điều chỉnh mức đóng khi có thay đổi lương/chức danh","Báo giảm khi NV nghỉ việc"],
+        sops:[]},
+      {id:"hr-nghiviec", name:"Nghỉ việc (Offboarding)",
+        desc:"Duyệt đơn nghỉ việc, bàn giao tài sản, thanh toán lương cuối, thủ tục hành chính.",
+        systems:["1Office (một phần)","Giấy"],
+        roles:[["C&B","Xử lý hồ sơ nghỉ việc"],["TA","Cập nhật dữ liệu"],["Admin","Thu hồi tài sản"]],
+        steps:["NV nộp đơn nghỉ việc","Quản lý trực tiếp duyệt","Bàn giao công việc & tài sản/đồng phục","Tính & thanh toán lương cuối","Hoàn tất thủ tục hành chính, báo giảm BHXH"],
+        sops:[["Flow chart vòng đời nhân viên","8.Ms-Chi/12-segment/Flow-Chart-Vong-Doi-Nhan-Vien.md"]]},
+      {id:"hr-kyluat", name:"Kỷ luật",
+        desc:"Lập biên bản và ra quyết định kỷ luật đối với vi phạm của nhân viên.",
+        systems:["Word + giấy"],
+        roles:[["HHR","Ra quyết định"],["Quản lý liên quan","Lập biên bản"]],
+        steps:["Ghi nhận vi phạm, lập biên bản","Quản lý liên quan báo cáo HHR","HHR xem xét & ra quyết định kỷ luật","Lưu hồ sơ"],
+        sops:[]},
+      {id:"hr-khenthuong", name:"Khen thưởng & thăng tiến",
+        desc:"Đề xuất → duyệt → ra quyết định khen thưởng/thăng tiến, cập nhật hồ sơ nhân sự.",
+        systems:["1Office (lưu hồ sơ)"],
+        roles:[["HHR","Duyệt"],["C&B","Cập nhật hồ sơ"]],
+        steps:["Quản lý đề xuất khen thưởng/thăng tiến","HHR xem xét & duyệt","Ra quyết định chính thức","Cập nhật hồ sơ nhân sự"],
+        sops:[]},
+      {id:"hr-danhgia", name:"Đánh giá & điều chuyển nội bộ",
+        desc:"Đánh giá định kỳ, điều chuyển/retraining nhân sự giữa các bộ phận.",
+        systems:["Chưa có hệ thống"],
+        roles:[["HHR","Chủ trì đánh giá"],["TA","Hỗ trợ điều chuyển"]],
+        steps:["Đánh giá năng lực định kỳ","Xác định nhu cầu điều chuyển/retraining","Thực hiện điều chuyển nội bộ"],
+        sops:[]},
+      {id:"hr-hanhchinh", name:"Hành chính & chiến lược HR",
+        desc:"Orgchart, chính sách nhân sự, mail/phân quyền, lưu trữ dữ liệu, quản lý HRMS.",
+        systems:["1Office (đang triển khai lại)"],
+        roles:[["HHR","Định hướng chiến lược"],["HC","Vận hành hành chính"],["IT","Hỗ trợ hệ thống"]],
+        steps:["Xây dựng/cập nhật sơ đồ tổ chức","Ban hành chính sách nhân sự","Quản lý tài khoản mail/phân quyền hệ thống","Lưu trữ & quản trị dữ liệu HRMS"],
+        sops:[]}
+    ]
+  },
+  ketoan:{
+    name:"Kế toán", icon:"📊", khoi:"Khối Tài chính Kế toán",
+    note:"Nguồn: 6.Workshop-Survey-ThucTe/Phan-tich-sau-survey-final/survey-ke-toan-Final.md",
+    processes:[
+      {id:"kt-baocao", name:"Báo cáo tài chính & quản trị",
+        desc:"P&L tuần (forecast) + P&L tháng (thực tế) + MenuMix.",
+        systems:["FAST","F2","Excel"],
+        roles:[["Kế toán trưởng (KTT)","Phê duyệt báo cáo"],["KTTH","Lập báo cáo"]],
+        steps:["Thu thập dữ liệu doanh thu/chi phí từ F2 & FAST","Lập P&L tuần (forecast)","Lập P&L tháng (số liệu thực tế)","Phân tích MenuMix","KTT rà soát & trình BOD"],
+        sops:[["Template SOP chuẩn","2.Standard_DOC/2.SOP/Template_SOP_Final.md"]]},
+      {id:"kt-giathanh-nh", name:"Giá thành & tồn kho nhà hàng",
+        desc:"Theo dõi NXT nguyên vật liệu, kiểm kê, tính giá thành, giải trình chênh lệch.",
+        systems:["F2","FAST","Excel"],
+        roles:[["Kế toán giá thành","Thực hiện"]],
+        steps:["Theo dõi nhập-xuất-tồn NVL theo ngày","Kiểm kê định kỳ tại nhà hàng","Tính giá thành món ăn","Giải trình chênh lệch định mức vs thực tế"],
+        sops:[]},
+      {id:"kt-giathanh-ck", name:"Giá thành & tồn kho Bếp trung tâm",
+        desc:"Tương tự nhà hàng, cộng thêm quản lý công nợ nhượng quyền.",
+        systems:["F2","FAST","Excel"],
+        roles:[["Kế toán kho CK/BTT","Thực hiện"]],
+        steps:["Theo dõi NXT NVL tại CK","Tính giá thành sản phẩm CK","Quản lý công nợ đối tác nhượng quyền"],
+        sops:[]},
+      {id:"kt-doanhthu", name:"Quản lý doanh thu",
+        desc:"Đối chiếu doanh thu (F2 vs app giao hàng), kiểm tra CTKM, Recoin, nộp tiền nhà hàng, báo cáo đối tác.",
+        systems:["F2","FAST","IB (Internet Banking)","Excel"],
+        roles:[["Kế toán doanh thu (x2)","Thực hiện"]],
+        steps:["Đối chiếu doanh thu F2 với app giao hàng","Kiểm tra áp dụng CTKM/Recoin","Đối chiếu tiền mặt nộp về từ nhà hàng","Lập báo cáo cho đối tác nhượng quyền"],
+        sops:[]},
+      {id:"kt-congno-ncc", name:"Công nợ nhà cung cấp",
+        desc:"Nhận phiếu giao hàng, đối chiếu, lập đề nghị thanh toán (quản lý >100 NCC).",
+        systems:["F2","FAST"],
+        roles:[["Kế toán công nợ (x2)","Thực hiện"]],
+        steps:["Nhận phiếu giao hàng từ Thu mua/Kho","Đối chiếu với PO & hóa đơn","Lập đề nghị thanh toán (ĐNTT)","Theo dõi công nợ theo NCC"],
+        sops:[]},
+      {id:"kt-taisan", name:"Tài sản & công cụ dụng cụ",
+        desc:"Kiểm kê định kỳ (quý), theo dõi nhập-xuất-tồn, khấu hao.",
+        systems:["FAST","Excel","Giấy"],
+        roles:[["Kế toán CCDC-TS","Thực hiện"]],
+        steps:["Kiểm kê tài sản/CCDC theo quý","Theo dõi NXT","Tính khấu hao","Đối chiếu sổ sách với thực tế"],
+        sops:[]},
+      {id:"kt-thanhtoan", name:"Thanh toán & dòng tiền",
+        desc:"Kế hoạch dòng tiền, lệnh chuyển khoản (2 cấp duyệt), tạm ứng, khoản vay.",
+        systems:["FAST","IB","1Office"],
+        roles:[["Kế toán thanh toán (x2)","Thực hiện"]],
+        steps:["Lập kế hoạch dòng tiền","Xử lý đề nghị tạm ứng","Lập lệnh chuyển khoản (IB)","2 cấp duyệt lệnh chi","Theo dõi khoản vay"],
+        sops:[]},
+      {id:"kt-danhmuc", name:"Cài đặt danh mục & CTKM",
+        desc:"Tạo mã món, giá bán, khuyến mãi trên FAST/F2 (nhập tay 2 lần do 2 hệ thống chưa liên thông).",
+        systems:["FAST","F2"],
+        roles:[["KTTH","Thực hiện"]],
+        steps:["Nhận yêu cầu tạo mã món/giá mới","Nhập danh mục trên FAST","Nhập lại danh mục trên F2 (song song, thủ công)","Cấu hình CTKM"],
+        sops:[]},
+      {id:"kt-duyetdntt", name:"Duyệt đề nghị thanh toán",
+        desc:"KTT duyệt toàn bộ đề nghị thanh toán trước khi chi.",
+        systems:["1Office","Ký giấy"],
+        roles:[["Kế toán trưởng","Duyệt cuối"]],
+        steps:["Nhận ĐNTT từ các bộ phận kế toán","Rà soát chứng từ, hạn mức","Duyệt/từ chối trên 1Office & ký giấy"],
+        sops:[]},
+      {id:"kt-thue", name:"Kế toán Thuế",
+        desc:"VAT/TNDN/TNCN — hiện đang thuê ngoài, dự kiến tuyển nội bộ cuối 2026.",
+        systems:["Outsource"],
+        roles:[["Đơn vị thuê ngoài","Thực hiện kê khai thuế"]],
+        steps:["Tổng hợp chứng từ kê khai thuế","Thuê ngoài lập tờ khai VAT/TNDN/TNCN","Nộp thuế đúng hạn"],
+        sops:[]}
+    ]
+  },
+  thumua:{
+    name:"Thu mua", icon:"🛒", khoi:"Khối Văn phòng",
+    note:"Nguồn: 10.ISO-9001/Khao-sat-phong-ban-lan-1/Survey-ThuMua-Final.md (v2 — 08/06/2026, cập nhật 03/09/2026)",
+    processes:[
+      {id:"tm-pr-nvl", name:"Tiếp nhận yêu cầu mua hàng — NVL",
+        desc:"Tiếp nhận & kiểm tra nhu cầu NVL từ cửa hàng/CK trên CukCuk/F2 (cửa hàng đặt 2 đơn: 1 về CK, 1 về Thu mua) theo lịch order cố định.",
+        systems:["CukCuk/F2","Excel"],
+        roles:[["NV Thu mua Food","Tiếp nhận & xử lý"]],
+        steps:["Cửa hàng/CK tạo đơn NVL trên CukCuk/F2 theo lịch order (2-4-6), trước 10h","CK tạo đơn gối đầu gửi Thu mua cho phần NVL CK sản xuất","Thu mua chuyển \"BA\" → PO theo từng nhà, tổng hợp tại Kho tổng (CK)","Tải Excel, pivot lọc theo NCC, Vlookup map giá nhập"],
+        sops:[]},
+      {id:"tm-pr-ccdc", name:"Tiếp nhận yêu cầu mua hàng — CCDC/thiết bị (YCMH)",
+        desc:"Tiếp nhận & kiểm tra đề xuất/yêu cầu mua hàng (YCMH) CCDC, thiết bị từ phòng ban/cửa hàng trên 1Office; tư vấn ngược đúng nhu cầu trước khi trình duyệt.",
+        systems:["1Office"],
+        roles:[["NV Thu mua Non-food","Tiếp nhận & xử lý"]],
+        steps:["Phòng ban/cửa hàng tạo đề xuất (PR/YCMH) CCDC, thiết bị trên 1Office (~1 lần/tháng, trừ phát sinh)","Thu mua kiểm tra nhu cầu, tư vấn ngược (mục đích, kích thước, công năng) để tối ưu chi phí","Theo dõi YCMH qua các cấp duyệt (AM/OM/GĐTC tùy giá trị)","Nhận YCMH đã duyệt, chuyển sang lập PO (mục Tạo & phát hành PO)"],
+        sops:[]},
+      {id:"tm-forecast", name:"Tiếp nhận Forecast nhu cầu",
+        desc:"Tiếp nhận dự báo nhu cầu (món mới, chương trình, ngừng/giảm hàng) từ Ops để điều chỉnh kế hoạch đặt hàng — chưa qua hệ thống, chưa có quy trình chi tiết.",
+        systems:["Trao đổi trực tiếp (chưa có hệ thống)"],
+        roles:[["NV Thu mua Food/Non-food","Tiếp nhận & xử lý"]],
+        steps:["Nhận forecast từ Ops (món mới sắp chạy, ngừng/giảm món...)","Quy đổi sản lượng bán dự kiến (tô/doanh thu) ra số ký NVL cần đặt","Điều chỉnh kế hoạch đặt hàng hoặc báo NCC ngừng/giảm"],
+        sops:[]},
+      {id:"tm-timncc", name:"Tìm kiếm & đánh giá nhà cung cấp",
+        desc:"Tìm NCC mới, đánh giá hồ sơ pháp lý/giá/công nợ/thời gian giao (hiện tự thực hiện, thiếu hỗ trợ QA); tái đánh giá NCC hiện hữu.",
+        systems:["Email","1Office"],
+        roles:[["Quyền phó QL Thu mua","Đánh giá & duyệt"],["NV Food/Non-food","Tìm kiếm"]],
+        steps:["Tìm kiếm NCC tiềm năng","Thu thập hồ sơ pháp lý, giá, công nợ, thời gian giao","Đánh giá năng lực (hàng lon chai gửi hồ sơ cho QA)","Tái đánh giá định kỳ NCC hiện hữu","Quyết định đưa vào danh sách NCC"],
+        sops:[]},
+      {id:"tm-rfq", name:"Yêu cầu báo giá (RFQ)",
+        desc:"Gửi RFQ, thu thập & so sánh báo giá; NCC gửi định kỳ ~25 mặt hàng vào đầu tháng.",
+        systems:["Email","1Office"],
+        roles:[["NV Food/Non-food","Thực hiện"]],
+        steps:["Gửi yêu cầu báo giá tới nhiều NCC","Thu thập bảng giá","So sánh giá định kỳ đầu tháng (~25 mặt hàng)","Chọn & chốt NCC tối ưu"],
+        sops:[]},
+      {id:"tm-damphan", name:"Đàm phán giá & điều khoản",
+        desc:"Thương lượng giá, điều kiện thanh toán, giao hàng, hợp đồng; deal giảm thêm 5–10% khi sản lượng lớn.",
+        systems:["Trực tiếp/gặp mặt","Email"],
+        roles:[["Quyền phó QL/Phó QL Thu mua","Đàm phán"]],
+        steps:["Chuẩn bị phương án đàm phán","Thương lượng giá & điều khoản thanh toán/giao hàng","Chốt hợp đồng/thỏa thuận (bắt buộc có hợp đồng với đơn >20 triệu)"],
+        sops:[]},
+      {id:"tm-po", name:"Tạo & phát hành PO",
+        desc:"PO NVL qua CukCuk (không cần duyệt, gửi thẳng NCC) / PO CCDC qua 1Office (lập sau khi PR được duyệt) / PO cho Dự án theo budget riêng.",
+        systems:["CukCuk","1Office"],
+        roles:[["NV Food/Non-food","Lập PO"]],
+        steps:["Lập PO theo nhu cầu đã tổng hợp","PO NVL: phát hành trực tiếp qua CukCuk, không chờ duyệt","PO CCDC: lập sau khi PR được duyệt trên 1Office","PO Dự án: chốt giá trong budget Dự án cấp","Gửi PO cho NCC"],
+        sops:[]},
+      {id:"tm-giaohang", name:"Theo dõi giao hàng & xử lý phát sinh",
+        desc:"Theo dõi 2 luồng NCC→cửa hàng và NCC→CK; xử lý trả hàng qua phiếu xuất trả (NCC ký, cập nhật CukCuk).",
+        systems:["Tin nhắn/mail (chưa có hệ thống)","CukCuk (PNK/PXK)"],
+        roles:[["NV Food/Non-food","Theo dõi & xử lý"]],
+        steps:["Theo dõi tiến độ giao hàng NCC→shop và NCC→CK","Xác nhận hàng đến","Xử lý phát sinh: thiếu hàng, hàng lỗi, giao trễ","Xử lý trả hàng: lập phiếu xuất trả, NCC ký, cập nhật hệ thống, báo Kế toán"],
+        sops:[]},
+      {id:"tm-hopdong", name:"Quản lý hợp đồng & hồ sơ NCC",
+        desc:"Lưu trữ hợp đồng (ký 2 bản, Thu mua giữ 1 bản + scan) và hồ sơ pháp lý NCC.",
+        systems:["Giấy","Thư mục scan"],
+        roles:[["Phó QL + NV Food/Non-food","Lưu trữ"]],
+        steps:["Lưu bản gốc hợp đồng (Thu mua giữ 1 bản)","Scan lưu trữ điện tử","Cập nhật khi có phụ lục/gia hạn"],
+        sops:[]},
+      {id:"tm-doichieu", name:"Đối chiếu thanh toán & công nợ NCC",
+        desc:"Phối hợp Kế toán đối chiếu công nợ định kỳ; tự lập đề nghị thanh toán trên 1Office cho hàng không thường xuyên (CCDC, phát sinh).",
+        systems:["1Office"],
+        roles:[["Phó QL + NV Food/Non-food","Phối hợp / lập đề nghị TT"],["Kế toán công nợ","Đối chiếu"]],
+        steps:["Lập đề nghị thanh toán trên 1Office cho hàng phát sinh","Đối chiếu số liệu công nợ định kỳ với Kế toán","Deal giãn hạn thanh toán với NCC khi Kế toán chậm xử lý","Xác nhận công nợ chính xác, giải trình chênh lệch nếu có"],
+        sops:[]},
+      {id:"tm-giamua", name:"Quản lý dữ liệu giá mua",
+        desc:"Tạo mã sản phẩm/NCC hoàn toàn mới (điền form gửi Kế toán); cập nhật biến động giá định kỳ đầu tháng vào file báo giá.",
+        systems:["Excel","Form / 1Office"],
+        roles:[["NV Thu mua","Đề xuất"],["Phó QL","Duyệt"],["Kế toán trưởng/GĐTC","Duyệt mã SP mới/NCC mới"]],
+        steps:["Tạo mã SP/NCC mới hoàn toàn khi có NVL/NCC mới (form → Kế toán trưởng duyệt mã, GĐTC duyệt NCC)","Cập nhật giá mua định kỳ đầu tháng vào file báo giá","Phó QL duyệt thay đổi giá"],
+        sops:[]},
+      {id:"tm-baocao", name:"Báo cáo & phân tích mua hàng",
+        desc:"Đổ dữ liệu từ FAST sang Excel (Vlookup, pivot); báo cáo chi phí mua hàng tháng + phân tích Pareto 80/20 (~700–800 mặt hàng); theo dõi biến động giá tuần với mặt hàng nhạy giá.",
+        systems:["FAST → Excel"],
+        roles:[["Quyền Phó QL","Phân tích"]],
+        steps:["Trích xuất dữ liệu mua hàng từ FAST","Phân tích Pareto 80/20 theo NCC/mặt hàng (~700–800 mặt hàng)","Theo dõi biến động giá theo tuần với mặt hàng nhạy giá (vd cá hồi)","Lập báo cáo & đề xuất tối ưu gửi BOD"],
+        sops:[]},
+      {id:"tm-nvlmoi", name:"Phát triển NVL mới & nội địa hóa",
+        desc:"Kết nối NCC lấy mẫu gửi R&D test phát triển NVL mới hoặc thay thế NCC; ưu tiên nội địa hóa nguyên liệu nhập khẩu.",
+        systems:["Email","1Office"],
+        roles:[["Quyền Phó QL","Phối hợp R&D"]],
+        steps:["Kết nối NCC cung cấp mẫu NVL mới hoặc thay thế","Chốt sản lượng/giá/thông tin NVL trước khi gửi R&D","Gửi mẫu cho R&D test/đánh giá","R&D lập phiếu đề xuất món mới/thay thế NVL trên 1Office","Tìm NCC nội địa thay thế NCC nhập khẩu"],
+        sops:[]}
+    ]
+  },
+  qa:{
+    name:"QA/QC", icon:"✅", khoi:"Khối Hỗ trợ Vận hành",
+    note:"Nguồn: 6.Workshop-Survey-ThucTe/Phan-tich-sau-survey-final/survey-QA-Final.md",
+    processes:[
+      {id:"qa-audit", name:"Audit nhà hàng",
+        desc:"Kiểm tra theo checklist S-C-P-Q-D (Service-Clean-People-Quality-Document).",
+        systems:["Chưa số hóa — giấy/Excel"],
+        roles:[["QA/QC Executive (NH)","Thực hiện audit"]],
+        steps:["Lên lịch audit định kỳ theo cửa hàng","Kiểm tra theo checklist S-C-P-Q-D","Ghi nhận điểm không phù hợp","Gửi báo cáo & yêu cầu khắc phục"],
+        sops:[]},
+      {id:"qa-attp", name:"Xin cấp giấy phép ATTP",
+        desc:"Chuẩn bị hồ sơ pháp lý & tiếp đoàn thẩm định an toàn thực phẩm.",
+        systems:[],
+        roles:[["QA Manager/Executive","Thực hiện"]],
+        steps:["Chuẩn bị hồ sơ pháp lý theo yêu cầu","Nộp hồ sơ xin cấp phép","Tiếp đoàn thẩm định thực tế","Nhận & lưu trữ giấy phép"],
+        sops:[]},
+      {id:"qa-moitruong", name:"Xin cấp giấy phép môi trường",
+        desc:"Hồ sơ đăng ký và tiếp đoàn kiểm tra môi trường.",
+        systems:[],
+        roles:[["QA Manager/Executive","Thực hiện"]],
+        steps:["Chuẩn bị hồ sơ môi trường","Nộp hồ sơ đăng ký","Tiếp đoàn kiểm tra thực tế"],
+        sops:[]},
+      {id:"qa-ruou", name:"Đăng ký bán rượu tiêu dùng tại chỗ",
+        desc:"Hồ sơ đăng ký giấy phép bán rượu tiêu dùng tại chỗ.",
+        systems:[],
+        roles:[["QA Manager","Thực hiện"]],
+        steps:["Chuẩn bị hồ sơ đăng ký","Nộp hồ sơ cơ quan chức năng","Nhận giấy phép"],
+        sops:[]},
+      {id:"qa-thanhtra", name:"Tiếp đoàn Thanh tra/Liên ngành ATTP",
+        desc:"Chuẩn bị hồ sơ, xử lý kết quả kiểm tra thanh tra liên ngành.",
+        systems:[],
+        roles:[["QA Manager/Executive","Thực hiện"]],
+        steps:["Chuẩn bị hồ sơ, cửa hàng theo yêu cầu đoàn","Tiếp đoàn thanh tra","Xử lý kết quả/khuyến nghị sau kiểm tra"],
+        sops:[]},
+      {id:"qa-moitruong-kt", name:"Tiếp đoàn kiểm tra Môi trường",
+        desc:"Tương tự tiếp đoàn ATTP nhưng cho lĩnh vực môi trường.",
+        systems:[],
+        roles:[["QA","Thực hiện"]],
+        steps:["Chuẩn bị hồ sơ môi trường","Tiếp đoàn kiểm tra","Xử lý kết quả sau kiểm tra"],
+        sops:[]},
+      {id:"qa-daotao-attp", name:"Đào tạo tập huấn ATTP",
+        desc:"Đào tạo nhân viên mới & tái đào tạo an toàn thực phẩm.",
+        systems:[],
+        roles:[["QA","Chủ trì nội dung"],["Đào tạo","Phối hợp tổ chức"]],
+        steps:["Xây dựng nội dung tập huấn ATTP","Tổ chức đào tạo NV mới","Tái đào tạo định kỳ"],
+        sops:[]},
+      {id:"qa-iqc", name:"Kiểm soát chất lượng đầu vào CK (IQC)",
+        desc:"Kiểm tra NVL đầu vào tại Central Kitchen theo SPEC.",
+        systems:[],
+        roles:[["QA/QC Executive (CK)","Thực hiện"]],
+        steps:["Nhận NVL đầu vào tại CK","Kiểm tra theo SPEC đã ban hành","Chấp nhận/từ chối lô hàng"],
+        sops:[]},
+      {id:"qa-pqc", name:"Kiểm soát chất lượng quy trình SX CK (PQC/OQC)",
+        desc:"Kiểm soát công đoạn sản xuất, các điểm kiểm soát tới hạn (CCP).",
+        systems:[],
+        roles:[["QA/QC Executive (CK)","Thực hiện"]],
+        steps:["Giám sát công đoạn sản xuất","Kiểm soát các điểm CCP","Kiểm tra sản phẩm đầu ra (OQC)"],
+        sops:[]},
+      {id:"qa-sop", name:"Soạn thảo quy trình/hướng dẫn",
+        desc:"Xây dựng & ban hành SOP/SPEC/GMP/SSOP (thư viện 39 tài liệu chuẩn).",
+        systems:["Word/giấy — chưa có DMS"],
+        roles:[["QA/QC Manager","Soạn thảo & ban hành"]],
+        steps:["Xác định nhu cầu chuẩn hóa quy trình","Soạn thảo SOP/SPEC/GMP/SSOP","Phê duyệt & ban hành","Lưu trữ trong thư viện tài liệu chuẩn"],
+        sops:[["Template SOP chuẩn","2.Standard_DOC/2.SOP/Template_SOP_Final.md"]]}
+    ]
+  },
+  rd:{
+    name:"R&D Ẩm thực", icon:"🍱", khoi:"Khối Vận hành",
+    note:"Nguồn: 6.Workshop-Survey-ThucTe/Phan-tich-sau-survey-final/survey-R&D-Final.md — kiêm nhiệm R&D và Operations, chưa có R&D Manager.",
+    processes:[
+      {id:"rd-menu", name:"Phát triển menu/món mới (end-to-end)",
+        desc:"Ý tưởng → công thức (BOM) → tasting → duyệt BOD/HOO → triển khai.",
+        systems:["Excel","WhatsApp","Gặp trực tiếp"],
+        roles:[["Executive Chef (EC)","Chủ trì phát triển"],["Saito (partner Nhật)","Tư vấn công thức"]],
+        steps:["Lên ý tưởng món mới","Xây dựng công thức (BOM)","Tasting nội bộ","Trình duyệt BOD/HOO","Triển khai ra menu chính thức"],
+        sops:[]},
+      {id:"rd-bom", name:"Tạo & cập nhật BOM và Chart",
+        desc:"Công thức NVL, định lượng, đơn giá, các bước chế biến — hiện quản lý version thủ công, rủi ro cao.",
+        systems:["Excel (thủ công)"],
+        roles:[["EC","Xây dựng công thức"],["Assistant","Hỗ trợ cập nhật"]],
+        steps:["Xây dựng công thức chi tiết (NVL, định lượng, đơn giá)","Ghi các bước chế biến (chart)","Cập nhật khi có thay đổi","Lưu trữ version (thủ công)"],
+        sops:[]},
+      {id:"rd-dinhmuc", name:"Rà soát chênh lệch định mức",
+        desc:"Đối chiếu định mức thực tế so với BOM chuẩn.",
+        systems:["Excel"],
+        roles:[["EC","Thực hiện"]],
+        steps:["Thu thập số liệu tiêu hao thực tế","Đối chiếu với định mức BOM","Xác định nguyên nhân chênh lệch"],
+        sops:[]},
+      {id:"rd-danhgia-ck", name:"Đánh giá chất lượng đầu ra CK",
+        desc:"Kiểm tra chất lượng sản phẩm do Central Kitchen sản xuất.",
+        systems:["Trực tiếp"],
+        roles:[["EC","Đánh giá"],["QA","Phối hợp"]],
+        steps:["Lấy mẫu sản phẩm từ CK","Đánh giá theo tiêu chuẩn công thức","Phản hồi & yêu cầu điều chỉnh nếu cần"],
+        sops:[]},
+      {id:"rd-taynghe", name:"Test tay nghề định kỳ (1–5 sao)",
+        desc:"Đánh giá/nâng bậc tay nghề nhân viên bếp.",
+        systems:["TreeAMS (chưa triển khai đủ)"],
+        roles:[["CV KSCL (Vinh Lâm)","Thực hiện đánh giá"]],
+        steps:["Lên lịch test tay nghề định kỳ","Đánh giá theo thang 1-5 sao","Cập nhật kết quả & xét nâng bậc"],
+        sops:[]},
+      {id:"rd-layout", name:"Thiết kế/duyệt layout bếp nhà hàng mới",
+        desc:"Tham gia dự án mở mới nhà hàng (NSO) ở khâu thiết kế bếp.",
+        systems:[],
+        roles:[["EC","Tham gia thiết kế"]],
+        steps:["Nhận yêu cầu từ dự án NSO","Thiết kế/góp ý layout bếp","Duyệt phương án cuối"],
+        sops:[]},
+      {id:"rd-phanbo", name:"Quyết định phân bổ sản xuất (CK/OEM/NH)",
+        desc:"Chọn nơi sản xuất phù hợp cho từng món/nguyên liệu.",
+        systems:[],
+        roles:[["EC","Đề xuất"],["BOD","Quyết định"]],
+        steps:["Đánh giá năng lực sản xuất CK/OEM/NH","Đề xuất phương án phân bổ","BOD phê duyệt"],
+        sops:[]},
+      {id:"rd-chuyengiao", name:"Chuyển giao công nghệ CK & quản lý OEM",
+        desc:"Training, bàn giao công thức (recipe) cho CK hoặc đối tác OEM.",
+        systems:[],
+        roles:[["EC","Chuyển giao"]],
+        steps:["Chuẩn bị tài liệu công thức chuẩn","Đào tạo nhân sự CK/OEM","Giám sát giai đoạn đầu sản xuất thử"],
+        sops:[]}
+    ]
+  },
+  daotao:{
+    name:"Đào tạo", icon:"🎓", khoi:"Khối Hỗ trợ Vận hành",
+    note:"Nguồn: 6.Workshop-Survey-ThucTe/Phan-tich-sau-survey-final/Survey-DaoTao-Final.md",
+    processes:[
+      {id:"dt-isb", name:"Đào tạo ISB/ISP (nhân viên)",
+        desc:"OJT tại store → thi lý thuyết → sát hạch; áp dụng cho SOL/Franchise/NSO.",
+        systems:["TreeAMS (xuất Excel thô, không dashboard)"],
+        roles:[["Training Leader/Trainer","Đào tạo"],["OPS","Thực hiện OJT"]],
+        steps:["Đào tạo lý thuyết (ISB/ISP)","OJT (on-the-job training) tại store","Thi lý thuyết","Sát hạch thực hành"],
+        sops:[]},
+      {id:"dt-ism", name:"Đào tạo ISM (quản lý)",
+        desc:"Đào tạo kỹ năng quản lý cho captain/shift supervisor/quản lý.",
+        systems:["TreeAMS"],
+        roles:[["Training Leader","Đào tạo"]],
+        steps:["Xác định đối tượng cần đào tạo quản lý","Tổ chức khóa ISM","Đánh giá kết quả sau đào tạo"],
+        sops:[]},
+      {id:"dt-sathach", name:"Sát hạch / Certify",
+        desc:"Lý thuyết + thực hành + vấn đáp (vị trí Trainer Certify hiện đang trống).",
+        systems:["TreeAMS"],
+        roles:[["Trainer (Certify)","Thực hiện — vị trí đang trống"]],
+        steps:["Tổ chức thi lý thuyết","Sát hạch thực hành","Vấn đáp","Cấp chứng nhận"],
+        sops:[]},
+      {id:"dt-tailieu", name:"Xây dựng & ban hành tài liệu đào tạo",
+        desc:"Biên soạn SOP món (phối hợp R&D), SOP vận hành.",
+        systems:["Word/Canva"],
+        roles:[["Training team","Biên soạn"]],
+        steps:["Thu thập nội dung từ phòng chuyên môn (R&D, Ops)","Biên soạn tài liệu/SOP đào tạo","Phê duyệt & ban hành"],
+        sops:[]},
+      {id:"dt-treeams", name:"Quản lý & vận hành TreeAMS",
+        desc:"Setup khóa học, gán học viên, xuất báo cáo.",
+        systems:["TreeAMS"],
+        roles:[["Training Leader (Admin TreeAMS)","Vận hành hệ thống"]],
+        steps:["Setup khóa học trên TreeAMS","Gán học viên vào khóa","Theo dõi tiến độ","Xuất báo cáo (Excel thô)"],
+        sops:[]},
+      {id:"dt-orientation", name:"Đào tạo Orientation",
+        desc:"Định hướng nhân sự mới toàn hệ thống.",
+        systems:[],
+        roles:[["Training","Thực hiện"]],
+        steps:["Tổ chức buổi định hướng cho NV mới","Giới thiệu văn hóa, chính sách công ty"],
+        sops:[]},
+      {id:"dt-audit", name:"Follow sau đào tạo (Training audit)",
+        desc:"Theo dõi hiệu quả sau đào tạo — quy trình chi tiết cần bổ sung thông tin.",
+        systems:[],
+        roles:[["Training","Theo dõi"]],
+        steps:["Theo dõi hiệu quả áp dụng sau đào tạo (quy trình chi tiết cần bổ sung)"],
+        sops:[]},
+      {id:"dt-tochuc", name:"Tổ chức lớp theo yêu cầu phòng ban khác",
+        desc:"Training đóng vai trò 'Host' tổ chức, phòng chuyên môn cung cấp nội dung.",
+        systems:["Email"],
+        roles:[["Training","Tổ chức (host)"],["Phòng yêu cầu","Cung cấp nội dung"]],
+        steps:["Nhận yêu cầu tổ chức lớp từ phòng ban khác","Sắp xếp lịch, phòng, học viên","Phòng chuyên môn cung cấp nội dung giảng dạy","Tổ chức lớp học"],
+        sops:[]}
+    ]
+  },
+  ck:{
+    name:"Central Kitchen (CK)", icon:"🏭", khoi:"Khối Sản xuất Cung ứng",
+    note:"Nguồn: 6.Workshop-Survey-ThucTe/Phan-tich-sau-survey-final/Survey-CK-Final-Final.md. Ghi chú: Tháng 7/2026 gộp về 1 CK duy nhất tại Lũy Bán Bích.",
+    processes:[
+      {id:"ck-tiepnhan", name:"Tiếp nhận & tổng hợp đơn hàng nhà hàng",
+        desc:"Nhận yêu cầu mua hàng (YCMH) từ nhà hàng.",
+        systems:["F2Tech (4 store)","CukCuk (31 store)"],
+        roles:[["CK Admin","Tiếp nhận & tổng hợp"]],
+        steps:["Nhận YCMH từ các cửa hàng","Tổng hợp theo mã hàng/nhóm hàng","Chuyển bộ phận chia hàng"],
+        sops:[]},
+      {id:"ck-chiahang", name:"Lên lịch & chia hàng (phân bổ)",
+        desc:"Chia theo công/rổ/thùng, route giao hàng cố định.",
+        systems:["F2Tech"],
+        roles:[["Logistic/Điều phối","Thực hiện"]],
+        steps:["Lên lịch chia hàng theo route cố định","Phân bổ theo công/rổ/thùng","Chuẩn bị hàng để xuất kho"],
+        sops:[]},
+      {id:"ck-xuatkho", name:"Xuất kho & giao hàng",
+        desc:"Giao hàng qua nhà thầu vận chuyển (Ahamove, 3SA/3S).",
+        systems:["F2Tech"],
+        roles:[["Thủ kho","Xuất kho"],["Logistic","Điều phối giao hàng"]],
+        steps:["Xuất kho theo phiếu chia hàng","Bàn giao cho nhà thầu vận chuyển","Theo dõi giao hàng đến cửa hàng"],
+        sops:[]},
+      {id:"ck-giaobu", name:"Giao bù/điều chỉnh khi thiếu hàng",
+        desc:"Xử lý ngoại lệ khi cửa hàng thiếu hàng.",
+        systems:[],
+        roles:[["Logistic","Xử lý"]],
+        steps:["Ghi nhận yêu cầu giao bù từ cửa hàng","Xác nhận số lượng thiếu","Sắp xếp giao bù ngoài lịch cố định"],
+        sops:[]},
+      {id:"ck-order-nvl", name:"Tạo order NVL & nhập hàng theo PO",
+        desc:"Phân loại mã đầu 1 (order Thu Mua)/đầu 2 (tự sản xuất)/đầu 3 (nhượng quyền).",
+        systems:["F2Tech"],
+        roles:[["CK Admin","Thực hiện"]],
+        steps:["Xác định nhu cầu NVL theo loại mã","Tạo order gửi Thu mua (mã đầu 1)","Nhập hàng theo PO khi hàng về"],
+        sops:[]},
+      {id:"ck-kiemke", name:"Kiểm kê cuối tháng & chốt NXT",
+        desc:"Phối hợp Kế toán chốt số liệu nhập-xuất-tồn cuối tháng.",
+        systems:["CukCuk/F2Tech","Excel"],
+        roles:[["Thủ kho","Kiểm kê"]],
+        steps:["Kiểm kê thực tế cuối tháng","Đối chiếu với sổ sách hệ thống","Chốt số liệu NXT với Kế toán"],
+        sops:[]},
+      {id:"ck-giasp", name:"Làm giá & chốt giá sản phẩm",
+        desc:"Phối hợp Kế toán tính giá thành sản phẩm CK.",
+        systems:["FAST"],
+        roles:[["CK Manager","Phối hợp"],["Kế toán","Tính giá thành"]],
+        steps:["Tổng hợp chi phí sản xuất","Phối hợp Kế toán tính giá thành","Chốt giá bán nội bộ cho các cửa hàng"],
+        sops:[]},
+      {id:"ck-thunghiem", name:"Thử nghiệm NVL mới",
+        desc:"Phối hợp R&D & Thu mua thử nghiệm nguyên liệu mới.",
+        systems:[],
+        roles:[["CK","Thử nghiệm"],["R&D","Đánh giá công thức"]],
+        steps:["Nhận mẫu NVL mới từ Thu mua/R&D","Sản xuất thử tại CK","Đánh giá kết quả & phản hồi"],
+        sops:[]}
+    ]
+  },
+  ops:{
+    name:"Vận hành (OPS)", icon:"🍽️", khoi:"Khối Vận hành",
+    note:"Nguồn: 6.Workshop-Survey-ThucTe/Survey/Survey lần 1, 5.Mr_Huan_DOC/PROCESS-BASED OPERATION SYSTEM.md. Phiếu khảo sát OPS còn để trống nhiều trường — cần bổ sung thông tin ở workshop tiếp theo.",
+    processes:[
+      {id:"ops-dathang", name:"Đặt hàng CK (FirstOrder & định kỳ)",
+        desc:"Cửa hàng đặt NVL theo lịch cố định từ Central Kitchen.",
+        systems:["CukCuk","F2Tech"],
+        roles:[["Tencho/QM","Đặt hàng"],["AM","Duyệt"]],
+        steps:["Tencho/QM lập đơn đặt hàng theo lịch cố định","AM duyệt đơn","Gửi CK xử lý"],
+        sops:[]},
+      {id:"ops-doanhthu", name:"Xem doanh thu, duyệt đơn hàng",
+        desc:"Theo dõi bán hàng, chương trình khuyến mãi.",
+        systems:["F2Tech"],
+        roles:[["AM","Theo dõi & duyệt"]],
+        steps:["Theo dõi doanh thu hàng ngày trên F2Tech","Kiểm tra áp dụng CTKM","Duyệt các đơn hàng phát sinh"],
+        sops:[]},
+      {id:"ops-order", name:"Vận hành order tại bàn (theo mô hình brand)",
+        desc:"KRU Express (counter+QR), KRU Full (QR tại bàn), KSY (tablet) — tùy thương hiệu.",
+        systems:["F2 POS"],
+        roles:[["FOH/Thu ngân","Vận hành"]],
+        steps:["Khách order theo mô hình của brand (counter/QR/tablet)","Ghi nhận order vào F2 POS","Chế biến & phục vụ","Thanh toán"],
+        sops:[]},
+      {id:"ops-baotri", name:"Phối hợp Bảo trì (CSVC)",
+        desc:"Tạo ticket, xử lý sự cố thiết bị — chưa có hệ thống ticket chính thức.",
+        systems:["WhatsApp (chưa có hệ thống)"],
+        roles:[["Tencho","Báo sự cố"],["Bảo trì","Xử lý"]],
+        steps:["Tencho phát hiện & báo sự cố qua WhatsApp","Bảo trì tiếp nhận & xử lý","Xác nhận hoàn tất"],
+        sops:[]},
+      {id:"ops-duan", name:"Phối hợp Dự án (mở mới/sửa chữa)",
+        desc:"Xây dựng hạ tầng, layout, bảo hành cửa hàng.",
+        systems:["Email"],
+        roles:[["AM/Dự án","Phối hợp"]],
+        steps:["Phối hợp khảo sát mặt bằng","Theo dõi tiến độ xây dựng/sửa chữa","Nghiệm thu bàn giao"],
+        sops:[]},
+      {id:"ops-tuyendung", name:"Phối hợp Tuyển dụng & Đào tạo tại store",
+        desc:"Đề xuất tuyển dụng, tổ chức OJT tại cửa hàng.",
+        systems:["1Office","TreeAMS"],
+        roles:[["Tencho","Đề xuất"],["HR","Tuyển dụng"],["Training","OJT"]],
+        steps:["Tencho đề xuất nhu cầu nhân sự","HR thực hiện tuyển dụng","Training tổ chức OJT tại store"],
+        sops:[]},
+      {id:"ops-3layer", name:'Framework "3-layer Process-based Operation"',
+        desc:"Chuẩn hóa activity + handover + control để giảm phụ thuộc cá nhân — khung lý thuyết, chưa triển khai.",
+        systems:[],
+        roles:[["Toàn hệ thống store","Áp dụng (dự kiến)"]],
+        steps:["Chuẩn hóa các activity vận hành","Thiết lập quy trình handover","Thiết lập điểm kiểm soát (control) — hiện là khung lý thuyết, chưa triển khai thực tế"],
+        sops:[["Process-based Operation System","5.Mr_Huan_DOC/PROCESS-BASED OPERATION SYSTEM.md"]]}
+    ]
+  },
+  marketing:{
+    name:"Marketing", icon:"📣", khoi:"Khối Vận hành",
+    note:"Chưa có khảo sát riêng cho phòng Marketing trong docs/SOL — thông tin dưới đây được ghép từ tài liệu các phòng khác (F2, CNV mini-zalo). Cần bổ sung thông tin qua workshop riêng.",
+    processes:[
+      {id:"mkt-order-model", name:"Thiết kế mô hình order theo brand",
+        desc:"Counter/QR/Tablet tùy loại hình (Fast Casual/Casual Dining/Fine Dining).",
+        systems:["F2 POS"],
+        roles:[["Marketing","Thiết kế trải nghiệm"],["OPS","Triển khai vận hành"]],
+        steps:["Phân tích đặc thù từng brand/loại hình","Thiết kế mô hình order (counter/QR/tablet)","Phối hợp OPS triển khai"],
+        sops:[]},
+      {id:"mkt-crm", name:"CRM/Loyalty (SOL Club)",
+        desc:"Dự án hợp nhất khách hàng 1 ID đa brand; loyalty engine, automation Zalo — đang làm việc với vendor CNV.",
+        systems:["Đang chọn vendor CRM/CLP/CDP (CNV mini-zalo)"],
+        roles:[["Marketing","Chủ trì dự án"]],
+        steps:["Xác định yêu cầu hợp nhất dữ liệu khách hàng (1 ID đa brand)","Làm việc với vendor CNV để triển khai CRM/CLP/CDP","Xây dựng loyalty engine & automation qua Zalo — dự án đang triển khai"],
+        sops:[["SOL CRM/CLP/CDP Vendor Requirements","13.Vendor-CNV-mini-zalo/SOL_CRM_CLP_CDP_Vendor_Requirements_Questions.md"]]},
+      {id:"mkt-ctkm", name:"CTKM/Khuyến mãi",
+        desc:"Đề xuất chương trình khuyến mãi, phối hợp Kế toán cài đặt trên F2, memo qua 1Office.",
+        systems:["1Office","F2"],
+        roles:[["Marketing","Đề xuất"],["Kế toán","Cài đặt hệ thống"]],
+        steps:["Marketing đề xuất chương trình khuyến mãi","Trình duyệt qua memo 1Office","Kế toán cài đặt CTKM trên F2","Theo dõi hiệu quả chương trình"],
+        sops:[]}
+    ]
+  }
+};
+
+/* ============ SƠ ĐỒ TỔ CHỨC (mục 1.3 trong từng file khảo sát) ============ */
+const ORG_CHARTS = {
+  hr:{
+    source:"survey-HR-Final.md · mục 1.3",
+    code:`graph TD
+    BGD["Ban Giám đốc / Anh Đông"]
+    HHR["HEAD OF HR<br/>Ms. Nguyễn Bảo Chi"]
+    CB_MGR["TRƯỞNG BP C&B<br/>Ms. Võ Thị Ánh Tuyết"]
+    TA_MGR["TRƯỞNG BP TUYỂN DỤNG<br/>Ng. Văn Hậu Giang"]
+    HC["CHUYÊN VIÊN HÀNH CHÍNH<br/>Thảo Đặng"]
+    CB_CV["CHUYÊN VIÊN C&B<br/>Ms. A (Nguyễn Thị Mỹ Duyên)"]
+    TA_LDR["TA LEADER<br/>Kim Huệ"]
+    TA_STAFF["TA STAFF (x2)<br/>Thảo Tống & Kiều Trinh"]
+    ADMIN["ADMIN PHÒNG NS<br/>Cần xác nhận headcount"]
+
+    BGD --> HHR
+    HHR --> CB_MGR
+    HHR --> TA_MGR
+    HHR --> HC
+    CB_MGR --> CB_CV
+    CB_MGR --> ADMIN
+    TA_MGR --> TA_LDR
+    TA_LDR --> TA_STAFF`
+  },
+  ketoan:{
+    source:"survey-ke-toan-Final.md · mục 1.3",
+    code:`graph TD
+    GD["Giám đốc Tài chính<br/>(Mr. Vĩ)"]
+    KTT["KẾ TOÁN TRƯỞNG<br/>Ms. Nguyễn Thị Thúy Nga"]
+    KTTH["KT TỔNG HỢP (Leader)<br/>Ms. Phạm Thị Ngọc"]
+    KTThue["KT THUẾ<br/>Chưa tuyển · đang thuê ngoài"]
+    KTTT_box["KT THANH TOÁN (2)<br/>Ms. Trần Thị Thu<br/>Ms. Lê Thị Thu Hằng"]
+    KTGT_box["KT GIÁ THÀNH<br/>Ms. Đoàn Thị Thao Quỳnh"]
+    KTBTT_box["KT BẾP TRUNG TÂM<br/>Ms. Trường Lê Thúy Quỳnh"]
+    KTDT_box["KT DOANH THU (2)<br/>Ms. Trần T. Ngọc Thúy<br/>Ms. Nguyễn N. Liên Trang"]
+    KTCN_box["KT CÔNG NỢ (2)<br/>Ms. Nguyễn N.T. Trang<br/>Ms. Nguyễn T.X. Thị"]
+    KTCCDC_box["KT CCDC-TS<br/>Ms. Lương Gia Huy"]
+
+    GD --> KTT
+    KTT --> KTThue
+    KTT --> KTTT_box
+    KTT --> KTTH
+    KTTH --> KTGT_box
+    KTTH --> KTBTT_box
+    KTTH --> KTDT_box
+    KTTH --> KTCN_box
+    KTTH --> KTCCDC_box`
+  },
+  thumua:{
+    source:"Survey-ThuMua-Final.md · mục 1.3 (v2 — 08/06/2026)",
+    code:`graph TD
+    BOD["BOD — Anh Đông (Giám đốc)"]
+    GDTC["Giám đốc Tài chính — Anh Vĩ"]
+    PQL["Phó quản lý Thu mua<br/>ĐANG TRỐNG"]
+    QPQL["Quyền phó quản lý<br/>Ms. Đỗ Thị Thanh Thúy"]
+    F["NV Thu mua Food<br/>(mới ~1 tháng)"]
+    NF["NV Thu mua Non-food<br/>(mới ~3 ngày)"]
+    IT["Intern"]
+    BOD --> GDTC
+    GDTC -.->|chuỗi báo cáo cần xác nhận| PQL
+    PQL -.->|vị trí đang trống| QPQL
+    QPQL --> F
+    QPQL --> NF
+    QPQL --> IT`
+  },
+  qa:{
+    source:"survey-QA-Final.md · mục 1.3",
+    code:`graph TD
+    SD["Support Director<br/>Ms. Thư"]
+    QM["QA/QC Manager<br/>Ms. Ngân Thanh"]
+    E1["QA/QC Executive · Nhà hàng<br/>Mr. Trường Giang"]
+    E2["QA/QC Executive · Nhà hàng<br/>Mr. Triệu Vĩ"]
+    E3["QA/QC Executive · CK<br/>Ms. Thuỳ Dung"]
+    I1["QA/QC Intern · CK<br/>Ms. Thuỳ Vy"]
+
+    SD --> QM
+    QM --> E1
+    QM --> E2
+    QM --> E3
+    QM --> I1
+
+    style SD fill:#8B0000,stroke:#333,color:#fff
+    style QM fill:#C41E3A,stroke:#333,color:#fff
+    style E1 fill:#F5E6CC,stroke:#8B0000,color:#333
+    style E2 fill:#F5E6CC,stroke:#8B0000,color:#333
+    style E3 fill:#F5E6CC,stroke:#8B0000,color:#333
+    style I1 fill:#FFF0F0,stroke:#8B0000,color:#666`
+  },
+  rd:{
+    source:"survey-R&D-Final.md · mục 1.3",
+    code:`graph TD
+    BOD["BOD / HOO"]
+    MGR["R&D MANAGER<br/>Vị trí đang trống"]
+    SAITO["Tatsuya Saito<br/>Partner Sáng tạo<br/>(Tư vấn / Thẩm định)"]
+    VINH["Mr. Vinh — EC<br/>R&D 2: Fine Dining<br/>+ Casual Dining"]
+    NHON["Mr. Nhơn — EC<br/>R&D 1: Fast Casual<br/>+ Ops Casual Dining"]
+    VL["Vinh Lâm<br/>CV KSCL — brand KRU"]
+    TA["Ms. Thái Anh<br/>Assistant R&D<br/>(support toàn team)"]
+
+    BOD --> MGR
+    MGR -. "Trống" .-> VINH
+    MGR -. "Trống" .-> NHON
+    NHON --> VL
+    MGR -. "Trống" .-> TA
+    SAITO -. "Thẩm định" .-> VINH
+    SAITO -. "Thẩm định" .-> NHON`
+  },
+  daotao:{
+    source:"Survey-DaoTao-Final.md · mục 1.3",
+    code:`graph TD
+    SubDirector["Chị Thư<br/>(Phó Giám đốc)"] --> Manager["Mr. Long<br/>(Deputy Training Manager)<br/>mới nhận vai trò"]
+    Manager --> Leader["Mr. Cư<br/>(Training Leader)<br/>Admin TreeAMS - vận hành chính"]
+    Manager --> Trainer1["Trainer 1<br/>(Phụ trách Training)"]
+    Manager --> Trainer2["Trainer 2<br/>(Phụ trách Certify - CHƯA TUYỂN)"]`
+  },
+  ck:{
+    source:"Survey-CK-Final-Final.md · mục 1.3",
+    code:`graph TD
+    BOD["BOD / Mr. Vỹ (Cấp duyệt)"]
+    Manager["Ms. Hòa — CK Manager"]
+    Deputy["Ms. Dung — CK Deputy"]
+    GS["Giám sát sản xuất (x3)"]
+    TK["Thủ kho (x1)"]
+    LOG["Logistic / Điều phối (x1)"]
+    ADM["CK Admin (x1)"]
+    TT["Tổ trưởng sản xuất (x2)"]
+    BT["Bảo trì (share 50%)"]
+    NV["Nhân viên sản xuất trực tiếp (x22)"]
+    QA["QA/QC (phòng độc lập)"]
+
+    BOD --> Manager
+    Manager --> Deputy
+    Deputy --> GS
+    Deputy --> TK
+    Deputy --> LOG
+    Deputy --> ADM
+    GS --> TT
+    TT --> NV
+    BT -. "50% CK" .-> Deputy
+    QA -. "Dịch vụ ATTP cho CK" .-> Manager`
+  },
+  ops:{
+    source:"3.Other_DOC/SOL-Org-Chart.md (chưa có mục 1.3 riêng cho OPS — sơ đồ rút gọn theo cấp)",
+    code:`graph TD
+    GD["Giám đốc Vận hành"]
+    P2A["Phòng Vận hành<br/>Mr.Châu · Ms.Vy · Mr.Long Châu · Mr.Thạch · Mr.Nghĩa"]
+    AM["Area Manager<br/>phụ trách theo cụm cửa hàng"]
+    TC["Tencho / QM<br/>Quản lý cửa hàng"]
+    FOH["FOH / Thu ngân / Nhân viên phục vụ"]
+
+    GD --> P2A
+    P2A --> AM
+    AM --> TC
+    TC --> FOH`
+  },
+  marketing:{
+    source:"3.Other_DOC/SOL-Org-Chart.md (chưa có mục 1.3 riêng cho Marketing — sơ đồ rút gọn theo cấp)",
+    code:`graph TD
+    GD["Giám đốc Vận hành"]
+    MKT["Phòng Marketing<br/>Mr.Trí"]
+
+    GD --> MKT`
+  }
+};
+
+function openOrgChart(deptKey){
+  const d = DATA[deptKey];
+  const oc = ORG_CHARTS[deptKey];
+  const code = (oc && oc.code ? oc.code : 'graph TD\n    A["Chưa có dữ liệu sơ đồ tổ chức"]').trim();
+  const sourceText = oc && oc.source ? oc.source : 'Chưa xác định nguồn';
+  const escapedCode = code.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+  const w = window.open('', '_blank');
+  if(!w){ alert('Trình duyệt đã chặn cửa sổ mới. Vui lòng cho phép popup để xem sơ đồ tổ chức.'); return; }
+
+  w.document.write(`<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Sơ đồ tổ chức — ${d.name}</title>
+<style>
+  :root{ --bg:#f7f7f8; --panel:#ffffff; --panel2:#f2f3f5; --border:#e0e1e6; --text:#1c1e24; --muted:#6b7280; --accent:#b8863d; --accent2:#8a6221; }
+  *{box-sizing:border-box;}
+  body{ margin:0; font-family:"Segoe UI",Helvetica,Arial,sans-serif; background:var(--bg); color:var(--text); }
+  header{ padding:22px 32px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; }
+  header h1{ margin:0; font-size:19px; }
+  header p{ margin:4px 0 0; color:var(--muted); font-size:12.5px; }
+  .btns{ display:flex; gap:10px; }
+  button{ background:var(--panel); border:1px solid var(--border); color:var(--text); padding:8px 16px; border-radius:8px; font-size:13px; cursor:pointer; font-weight:600; }
+  button:hover{ border-color:var(--accent); }
+  button.primary{ background:linear-gradient(135deg,var(--accent),var(--accent2)); color:#fff; border:none; }
+  main{ padding:26px 32px 60px; }
+  .chart-box{ background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:24px; overflow:auto; }
+  .mermaid{ display:flex; justify-content:center; }
+  .code-box{ display:none; margin-top:18px; background:#1c1e24; border-radius:12px; padding:18px 20px; overflow:auto; }
+  .code-box.show{ display:block; }
+  .code-box pre{ margin:0; color:#e6e6e6; font-size:12.5px; line-height:1.6; white-space:pre; font-family:Consolas,Menlo,monospace; }
+  .err{ color:#b3261e; padding:16px; display:none; }
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>🗂️ Sơ đồ tổ chức — ${d.name}</h1>
+    <p>Nguồn: ${sourceText}</p>
+  </div>
+  <div class="btns">
+    <button class="primary" onclick="document.getElementById('codeBox').classList.toggle('show')">💻 Code</button>
+    <button onclick="window.close()">Đóng</button>
+  </div>
+</header>
+<main>
+  <div class="chart-box">
+    <div class="mermaid" id="chartEl">${code}</div>
+    <p class="err" id="errBox">Không thể hiển thị sơ đồ (lỗi cú pháp Mermaid). Hãy bấm nút Code để xem/kiểm tra nội dung gốc.</p>
+  </div>
+  <div class="code-box" id="codeBox"><pre>${escapedCode}</pre></div>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"><\/script>
+<script>
+  try{
+    mermaid.initialize({ startOnLoad:true, theme:'default', securityLevel:'loose', flowchart:{ htmlLabels:true, useMaxWidth:false } });
+  }catch(e){
+    document.getElementById('errBox').style.display='block';
+  }
+  window.addEventListener('load', ()=>{
+    setTimeout(()=>{
+      const svg = document.querySelector('.mermaid svg');
+      if(!svg){ document.getElementById('errBox').style.display='block'; }
+    }, 1200);
+  });
+<\/script>
+</body>
+</html>`);
+  w.document.close();
+}
+
+/* ============ RENDER ============ */
+const deptGrid = document.getElementById('deptGrid');
+const deptKeys = Object.keys(DATA);
+
+deptKeys.forEach(key=>{
+  const d = DATA[key];
+  const card = document.createElement('div');
+  card.className = 'dept-card';
+  card.dataset.key = key;
+  card.innerHTML = `
+    <span class="block">${d.khoi.replace('Khối ','')}</span>
+    <span class="icon">${d.icon}</span>
+    <div class="name">${d.name}</div>
+    <div class="count">${d.processes.length} nghiệp vụ</div>
+  `;
+  card.addEventListener('click', ()=> selectDept(key));
+  deptGrid.appendChild(card);
+});
+
+function selectDept(key){
+  document.querySelectorAll('.dept-card').forEach(c=>c.classList.toggle('active', c.dataset.key===key));
+  const d = DATA[key];
+  document.getElementById('ppTitle').textContent = d.icon + '  ' + d.name;
+  document.getElementById('ppKhoi').textContent = d.khoi;
+  document.getElementById('ppNote').textContent = d.note;
+
+  const list = document.getElementById('processList');
+  list.innerHTML = '';
+
+  const orgItem = document.createElement('div');
+  orgItem.className = 'process-item org-chart-item';
+  orgItem.innerHTML = `
+    <div class="p-name">🗂️ Sơ đồ tổ chức</div>
+    <div class="p-desc">Xem sơ đồ phân cấp & báo cáo của ${d.name}.</div>
+    <div class="p-meta"><span class="chip">Org Chart</span></div>
+  `;
+  orgItem.addEventListener('click', ()=> openOrgChart(key));
+  list.appendChild(orgItem);
+
+  d.processes.forEach(p=>{
+    const item = document.createElement('div');
+    item.className = 'process-item';
+    item.innerHTML = `
+      <div class="p-name">${p.name}</div>
+      <div class="p-desc">${p.desc}</div>
+      <div class="p-meta">${(p.systems||[]).slice(0,2).map(s=>`<span class="chip">${s}</span>`).join('')}</div>
+    `;
+    item.addEventListener('click', ()=> openDetail(key, p.id));
+    list.appendChild(item);
+  });
+  document.getElementById('processPanel').classList.add('show');
+  document.getElementById('processPanel').scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+let lastDept = null;
+let currentProcess = null;
+
+/* ============ ADMIN: link "Quy trình chi tiết" do người dùng gán ============ */
+const CUSTOM_LINKS_KEY = 'sol_custom_process_links';
+const ADMIN_PASSWORD = '271209';
+
+function loadCustomLinks(){
+  try{
+    return JSON.parse(localStorage.getItem(CUSTOM_LINKS_KEY)) || {};
+  }catch(e){ return {}; }
+}
+function saveCustomLinks(links){
+  localStorage.setItem(CUSTOM_LINKS_KEY, JSON.stringify(links));
+}
+let customLinks = loadCustomLinks();
+
+/* Đường dẫn tới trang "Quy trình chi tiết" cho từng nghiệp vụ.
+   Thứ tự ưu tiên:
+   1. Link do Admin gán qua trang quản trị (lưu trong localStorage)
+   2. Field detailFile khai báo sẵn trong DATA
+   3. Mặc định: quy-trinh-chi-tiet/<id>.html */
+function getDetailFlowUrl(p){
+  if(customLinks[p.id]) return customLinks[p.id];
+  if(p.detailFile) return p.detailFile;
+  return `quy-trinh-chi-tiet/${p.id}.html`;
+}
+
+/* Nếu link trỏ tới file .bpmn (XML), trình duyệt không đọc trực tiếp được —
+   tự động bọc qua bpmn-viewer.html (render bằng bpmn-js) thay vì mở thẳng file. */
+function resolveOpenUrl(url, title){
+  const cleanUrl = (url || '').split('?')[0].split('#')[0].trim().toLowerCase();
+  if(cleanUrl.endsWith('.bpmn')){
+    return `bpmn-viewer.html?src=${encodeURIComponent(url)}&title=${encodeURIComponent(title || '')}`;
+  }
+  return url;
+}
+
+function openDetailFlow(){
+  if(!currentProcess) return;
+  const rawUrl = getDetailFlowUrl(currentProcess);
+  window.open(resolveOpenUrl(rawUrl, currentProcess.name), '_blank');
+}
+
+/* ---- Password modal ---- */
+function openAdminPrompt(){
+  document.getElementById('pwInput').value = '';
+  document.getElementById('pwError').style.display = 'none';
+  document.getElementById('pwModalOverlay').classList.add('show');
+  setTimeout(()=> document.getElementById('pwInput').focus(), 50);
+}
+function closePwModal(){
+  document.getElementById('pwModalOverlay').classList.remove('show');
+}
+function checkPassword(){
+  const val = document.getElementById('pwInput').value;
+  if(val === ADMIN_PASSWORD){
+    closePwModal();
+    showAdminPage();
+  } else {
+    document.getElementById('pwError').style.display = 'block';
+  }
+}
+document.addEventListener('keydown', (e)=>{
+  if(!document.getElementById('pwModalOverlay').classList.contains('show')) return;
+  if(e.key === 'Enter') checkPassword();
+  if(e.key === 'Escape') closePwModal();
+});
+
+/* ---- Admin page ---- */
+function showAdminPage(){
+  document.getElementById('page1').style.display = 'none';
+  document.getElementById('page2').style.display = 'none';
+  document.getElementById('page3').style.display = 'block';
+  document.getElementById('adminProcessPanel').classList.remove('show');
+  document.getElementById('crumbs').innerHTML = `<button onclick="goBackFromAdmin()">Trang chủ</button> / Quản trị`;
+  window.scrollTo({top:0, behavior:'smooth'});
+
+  const grid = document.getElementById('adminDeptGrid');
+  grid.innerHTML = '';
+  deptKeys.forEach(key=>{
+    const d = DATA[key];
+    const card = document.createElement('div');
+    card.className = 'dept-card';
+    card.dataset.key = key;
+    card.innerHTML = `
+      <span class="block">${d.khoi.replace('Khối ','')}</span>
+      <span class="icon">${d.icon}</span>
+      <div class="name">${d.name}</div>
+      <div class="count">${d.processes.length} nghiệp vụ</div>
+    `;
+    card.addEventListener('click', ()=> selectAdminDept(key));
+    grid.appendChild(card);
+  });
+}
+
+function selectAdminDept(key){
+  document.querySelectorAll('#adminDeptGrid .dept-card').forEach(c=>c.classList.toggle('active', c.dataset.key===key));
+  const d = DATA[key];
+  document.getElementById('apTitle').textContent = d.icon + '  ' + d.name;
+  document.getElementById('apKhoi').textContent = d.khoi;
+
+  const list = document.getElementById('adminProcessList');
+  list.innerHTML = '';
+  d.processes.forEach(p=>{
+    const row = document.createElement('div');
+    row.className = 'admin-process-row';
+    const inputId = 'link-' + p.id;
+    const tagId = 'saved-' + p.id;
+    row.innerHTML = `
+      <div class="apr-name">${p.name}</div>
+      <input type="text" id="${inputId}" placeholder="Dán đường link HTML quy trình chi tiết..." value="${(customLinks[p.id]||'').replace(/"/g,'&quot;')}" />
+      <button class="admin-save-btn" onclick="confirmAdminLink('${p.id}')">Xác nhận</button>
+      <span class="admin-saved-tag" id="${tagId}">✓ Đã lưu</span>
+    `;
+    list.appendChild(row);
+  });
+  document.getElementById('adminProcessPanel').classList.add('show');
+}
+
+function confirmAdminLink(procId){
+  const input = document.getElementById('link-' + procId);
+  const val = input.value.trim();
+  if(val){
+    customLinks[procId] = val;
+  } else {
+    delete customLinks[procId];
+  }
+  saveCustomLinks(customLinks);
+  const tag = document.getElementById('saved-' + procId);
+  tag.classList.add('show');
+  setTimeout(()=> tag.classList.remove('show'), 2000);
+}
+
+function goBackFromAdmin(){
+  document.getElementById('page3').style.display = 'none';
+  document.getElementById('page1').style.display = 'block';
+  document.getElementById('crumbs').textContent = 'Trang chủ';
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function openDetail(deptKey, procId){
+  lastDept = deptKey;
+  const d = DATA[deptKey];
+  const p = d.processes.find(x=>x.id===procId);
+  if(!p) return;
+  currentProcess = p;
+
+  document.getElementById('d2dept').textContent = d.icon + ' ' + d.name + ' · ' + d.khoi;
+  document.getElementById('d2title').textContent = p.name;
+  document.getElementById('d2summary').textContent = p.desc;
+
+  const stepsEl = document.getElementById('d2steps');
+  stepsEl.innerHTML = '';
+  if(p.steps && p.steps.length){
+    p.steps.forEach(s=>{
+      const li = document.createElement('li');
+      li.textContent = s;
+      stepsEl.appendChild(li);
+    });
+  } else {
+    stepsEl.innerHTML = '<li class="missing">Chưa có mô tả chi tiết từng bước — cần bổ sung thông tin.</li>';
+  }
+
+  const rolesEl = document.getElementById('d2roles');
+  rolesEl.innerHTML = '';
+  if(p.roles && p.roles.length){
+    p.roles.forEach(r=>{
+      const div = document.createElement('div');
+      div.className = 'kv-row';
+      div.innerHTML = `<div class="k">${r[0]}</div><div class="v">${r[1]}</div>`;
+      rolesEl.appendChild(div);
+    });
+  } else {
+    rolesEl.innerHTML = '<div class="missing">Chưa xác định rõ vai trò — cần bổ sung thông tin.</div>';
+  }
+
+  const sysEl = document.getElementById('d2systems');
+  sysEl.innerHTML = '';
+  if(p.systems && p.systems.length){
+    p.systems.forEach(s=>{
+      const li = document.createElement('li');
+      li.textContent = s;
+      sysEl.appendChild(li);
+    });
+  } else {
+    sysEl.innerHTML = '<li class="missing">Chưa có hệ thống hỗ trợ — cần bổ sung thông tin.</li>';
+  }
+
+  const sopEl = document.getElementById('d2sops');
+  sopEl.innerHTML = '';
+  if(p.sops && p.sops.length){
+    p.sops.forEach(s=>{
+      const li = document.createElement('li');
+      li.innerHTML = `${s[0]}<span class="path">${s[1]}</span>`;
+      sopEl.appendChild(li);
+    });
+  } else {
+    sopEl.innerHTML = '<li class="missing">Chưa có tài liệu SOP liên kết.</li>';
+  }
+
+  document.getElementById('page1').style.display = 'none';
+  document.getElementById('page2').style.display = 'block';
+  document.getElementById('crumbs').innerHTML = `<button onclick="goBack()">Trang chủ</button> / ${d.name} / ${p.name}`;
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function goBack(){
+  document.getElementById('page2').style.display = 'none';
+  document.getElementById('page1').style.display = 'block';
+  document.getElementById('crumbs').textContent = 'Trang chủ';
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Xem sơ đồ BPMN — SOL</title>
+<link rel="stylesheet" href="https://unpkg.com/bpmn-js@17.11.1/dist/assets/diagram-js.css">
+<link rel="stylesheet" href="https://unpkg.com/bpmn-js@17.11.1/dist/assets/bpmn-font/css/bpmn.css">
+<style>
+  :root{ --bg:#f7f7f8; --panel:#ffffff; --border:#e0e1e6; --text:#1c1e24; --muted:#6b7280; --accent:#b8863d; --accent2:#8a6221; }
+  *{box-sizing:border-box;}
+  html,body{ margin:0; height:100%; font-family:"Segoe UI",Helvetica,Arial,sans-serif; background:var(--bg); color:var(--text); }
+  header{ padding:16px 24px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; background:var(--panel); }
+  header h1{ margin:0; font-size:16px; }
+  header p{ margin:2px 0 0; color:var(--muted); font-size:12px; word-break:break-all; }
+  .btns{ display:flex; gap:8px; flex-wrap:wrap; }
+  button{ background:var(--panel); border:1px solid var(--border); color:var(--text); padding:7px 14px; border-radius:8px; font-size:12.5px; cursor:pointer; font-weight:600; }
+  button:hover{ border-color:var(--accent); }
+  button.primary{ background:linear-gradient(135deg,var(--accent),var(--accent2)); color:#fff; border:none; }
+  #canvas{ position:absolute; top:64px; left:0; right:0; bottom:0; }
+  .msg{ position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); text-align:center; max-width:520px; padding:24px; }
+  .msg h2{ margin:0 0 8px; font-size:16px; }
+  .msg p{ color:var(--muted); font-size:13px; line-height:1.6; }
+  .msg code{ background:#eee; padding:2px 6px; border-radius:4px; font-size:12px; word-break:break-all; }
+  #loading{ position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); color:var(--muted); font-size:13px; }
+  .djs-palette{ display:none !important; } /* viewer only, không cần palette chỉnh sửa */
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1 id="title">🗂️ Sơ đồ BPMN</h1>
+    <p id="srcLabel">Đang tải...</p>
+  </div>
+  <div class="btns">
+    <button class="primary" onclick="fitViewport()">🔍 Fit</button>
+    <button onclick="zoom(1.2)">➕ Zoom in</button>
+    <button onclick="zoom(0.8)">➖ Zoom out</button>
+    <button id="downloadBtn" style="display:none">⬇️ Tải XML gốc</button>
+    <button onclick="window.close()">Đóng</button>
+  </div>
+</header>
+
+<div id="canvas"></div>
+<div id="loading">⏳ Đang tải sơ đồ...</div>
+
+<script src="https://unpkg.com/bpmn-js@17.11.1/dist/bpmn-viewer.production.min.js"></script>
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const src = params.get('src');
+  const title = params.get('title');
+  if (title) document.getElementById('title').textContent = '🗂️ ' + decodeURIComponent(title);
+
+  let viewer = null;
+
+  function showError(heading, detail){
+    document.getElementById('loading').style.display = 'none';
+    const box = document.createElement('div');
+    box.className = 'msg';
+    box.innerHTML = `<h2>⚠️ ${heading}</h2><p>${detail}</p>`;
+    document.getElementById('canvas').appendChild(box);
+  }
+
+  if(!src){
+    document.getElementById('srcLabel').textContent = 'Thiếu tham số ?src=';
+    showError('Không có file để hiển thị', 'Trang này cần được mở với tham số <code>?src=&lt;link .bpmn&gt;</code>. Ví dụ: <code>bpmn-viewer.html?src=https://raw.githubusercontent.com/.../file.bpmn</code>');
+  } else {
+    document.getElementById('srcLabel').textContent = src;
+    document.getElementById('downloadBtn').style.display = 'inline-flex';
+    document.getElementById('downloadBtn').onclick = () => window.open(src, '_blank');
+
+    fetch(src)
+      .then(res => {
+        if(!res.ok) throw new Error('HTTP ' + res.status);
+        return res.text();
+      })
+      .then(xml => {
+        viewer = new BpmnJS({ container: '#canvas' });
+        return viewer.importXML(xml);
+      })
+      .then(() => {
+        document.getElementById('loading').style.display = 'none';
+        fitViewport();
+      })
+      .catch(err => {
+        showError(
+          'Không tải/đọc được sơ đồ BPMN',
+          `Lỗi: <code>${(err && err.message) || err}</code><br><br>
+           Kiểm tra: (1) link phải trỏ tới file <b>.bpmn raw</b> (vd link "raw.githubusercontent.com", không phải link trang GitHub thường);
+           (2) file phải là XML BPMN hợp lệ; (3) server chứa file phải cho phép CORS.`
+        );
+      });
+  }
+
+  function fitViewport(){
+    if(viewer) viewer.get('canvas').zoom('fit-viewport');
+  }
+  function zoom(factor){
+    if(viewer){
+      const canvas = viewer.get('canvas');
+      canvas.zoom(canvas.zoom() * factor);
+    }
+  }
+</script>
+</body>
+</html>
