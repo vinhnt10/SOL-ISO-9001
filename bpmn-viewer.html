@@ -7,9 +7,9 @@
 <link rel="stylesheet" href="https://unpkg.com/bpmn-js@17.11.1/dist/assets/diagram-js.css">
 <link rel="stylesheet" href="https://unpkg.com/bpmn-js@17.11.1/dist/assets/bpmn-font/css/bpmn.css">
 <style>
-  :root{ --bg:#f7f7f8; --panel:#ffffff; --border:#e0e1e6; --text:#1c1e24; --muted:#6b7280; --accent:#b8863d; --accent2:#8a6221; }
+  :root{ --bg:#f7f7f8; --panel:#ffffff; --panel2:#f2f3f5; --border:#e0e1e6; --text:#1c1e24; --muted:#6b7280; --accent:#b8863d; --accent2:#8a6221; }
   *{box-sizing:border-box;}
-  html,body{ margin:0; height:100%; font-family:"Segoe UI",Helvetica,Arial,sans-serif; background:var(--bg); color:var(--text); }
+  html,body{ margin:0; height:100%; font-family:"Segoe UI",Helvetica,Arial,sans-serif; background:var(--bg); color:var(--text); overflow:hidden; }
   header{ padding:16px 24px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; background:var(--panel); }
   header h1{ margin:0; font-size:16px; }
   header p{ margin:2px 0 0; color:var(--muted); font-size:12px; word-break:break-all; }
@@ -17,7 +17,28 @@
   button{ background:var(--panel); border:1px solid var(--border); color:var(--text); padding:7px 14px; border-radius:8px; font-size:12.5px; cursor:pointer; font-weight:600; }
   button:hover{ border-color:var(--accent); }
   button.primary{ background:linear-gradient(135deg,var(--accent),var(--accent2)); color:#fff; border:none; }
-  #canvas{ position:absolute; top:64px; left:0; right:0; bottom:0; }
+  button.small{ padding:4px 10px; font-size:11.5px; }
+
+  /* ---- Layout: 3/4 canvas + 1/4 sidebar ---- */
+  #body-layout{ position:absolute; top:64px; left:0; right:0; bottom:0; display:flex; }
+  #canvas-wrap{ position:relative; flex:0 0 75%; max-width:75%; height:100%; border-right:1px solid var(--border); }
+  #canvas{ position:absolute; inset:0; }
+  #sidebar{ flex:0 0 25%; max-width:25%; height:100%; overflow-y:auto; background:var(--panel); padding:18px 16px 40px; }
+  @media (max-width:900px){
+    #body-layout{ flex-direction:column; }
+    #canvas-wrap{ flex:0 0 55%; max-width:100%; height:55%; border-right:none; border-bottom:1px solid var(--border); }
+    #sidebar{ flex:0 0 45%; max-width:100%; height:45%; }
+  }
+
+  #sidebar h2{ margin:0 0 12px; font-size:13px; text-transform:uppercase; letter-spacing:.6px; color:var(--muted); }
+  .anno-card{ background:var(--panel2); border:1px solid var(--border); border-radius:10px; padding:12px 14px; margin-bottom:10px; }
+  .anno-card .anno-id{ font-size:10.5px; color:var(--muted); margin-bottom:4px; letter-spacing:.3px; }
+  .anno-card .anno-text{ font-size:13px; line-height:1.55; white-space:pre-wrap; word-break:break-word; }
+  .anno-card .anno-text a{ color:var(--accent2); text-decoration:none; word-break:break-all; }
+  .anno-card .anno-text a:hover{ text-decoration:underline; }
+  .anno-empty{ color:var(--muted); font-size:12.5px; font-style:italic; padding:8px 0; }
+  .sidebar-note{ font-size:11.5px; color:var(--muted); margin:0 0 14px; line-height:1.5; }
+
   .msg{ position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); text-align:center; max-width:520px; padding:24px; }
   .msg h2{ margin:0 0 8px; font-size:16px; }
   .msg p{ color:var(--muted); font-size:13px; line-height:1.6; }
@@ -42,8 +63,17 @@
   </div>
 </header>
 
-<div id="canvas"></div>
-<div id="loading">⏳ Đang tải sơ đồ...</div>
+<div id="body-layout">
+  <div id="canvas-wrap">
+    <div id="canvas"></div>
+    <div id="loading">⏳ Đang tải sơ đồ...</div>
+  </div>
+  <div id="sidebar">
+    <h2>📌 Thông tin / Ghi chú</h2>
+    <p class="sidebar-note">Nội dung các Text Annotation gắn trong sơ đồ (mẫu biểu, link tham chiếu, ghi chú nghiệp vụ...).</p>
+    <div id="annoList"></div>
+  </div>
+</div>
 
 <script src="https://unpkg.com/bpmn-js@17.11.1/dist/bpmn-viewer.production.min.js"></script>
 <script>
@@ -62,9 +92,58 @@
     document.getElementById('canvas').appendChild(box);
   }
 
+  function escapeHtml(s){
+    return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  // Biến text thành HTML, tự động biến URL thành link bấm được
+  function linkify(text){
+    const escaped = escapeHtml(text);
+    const urlRegex = /((https?:\/\/|www\.)[^\s<]+)/gi;
+    return escaped.replace(urlRegex, (match) => {
+      const href = match.startsWith('http') ? match : 'https://' + match;
+      return `<a href="${href}" target="_blank" rel="noopener">${match}</a>`;
+    });
+  }
+
+  // Đọc trực tiếp XML để lấy các <bpmn:textAnnotation> — không phụ thuộc việc bpmn-js có render được hay không
+  function renderAnnotations(xmlString){
+    const listEl = document.getElementById('annoList');
+    listEl.innerHTML = '';
+    try{
+      const doc = new DOMParser().parseFromString(xmlString, 'application/xml');
+      const parserError = doc.querySelector('parsererror');
+      if(parserError) throw new Error('XML parse error');
+
+      const annotations = Array.from(doc.getElementsByTagNameNS('*', 'textAnnotation'));
+      if(annotations.length === 0){
+        listEl.innerHTML = '<div class="anno-empty">Sơ đồ này chưa có Text Annotation nào.</div>';
+        return;
+      }
+
+      annotations.forEach(anno => {
+        const id = anno.getAttribute('id') || '';
+        const textEl = anno.getElementsByTagNameNS('*', 'text')[0];
+        const text = textEl ? textEl.textContent.trim() : '';
+        if(!text) return;
+        const card = document.createElement('div');
+        card.className = 'anno-card';
+        card.innerHTML = `<div class="anno-id">${escapeHtml(id)}</div><div class="anno-text">${linkify(text)}</div>`;
+        listEl.appendChild(card);
+      });
+
+      if(!listEl.innerHTML){
+        listEl.innerHTML = '<div class="anno-empty">Sơ đồ này chưa có Text Annotation nào.</div>';
+      }
+    }catch(e){
+      listEl.innerHTML = '<div class="anno-empty">Không đọc được ghi chú từ file (lỗi phân tích XML).</div>';
+    }
+  }
+
   if(!src){
     document.getElementById('srcLabel').textContent = 'Thiếu tham số ?src=';
     showError('Không có file để hiển thị', 'Trang này cần được mở với tham số <code>?src=&lt;link .bpmn&gt;</code>. Ví dụ: <code>bpmn-viewer.html?src=https://raw.githubusercontent.com/.../file.bpmn</code>');
+    document.getElementById('annoList').innerHTML = '<div class="anno-empty">Chưa có sơ đồ để đọc ghi chú.</div>';
   } else {
     document.getElementById('srcLabel').textContent = src;
     document.getElementById('downloadBtn').style.display = 'inline-flex';
@@ -76,6 +155,7 @@
         return res.text();
       })
       .then(xml => {
+        renderAnnotations(xml);
         viewer = new BpmnJS({ container: '#canvas' });
         return viewer.importXML(xml);
       })
