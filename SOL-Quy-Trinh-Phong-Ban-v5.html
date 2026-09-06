@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SOL — Quy trình Phòng ban (v5)</title>
+<title>SOL — Quy trình Phòng ban (v7)</title>
 <style>
   :root{
     --bg:#f7f7f8; --panel:#ffffff; --panel2:#f2f3f5; --border:#e0e1e6;
@@ -181,6 +181,38 @@
   }
   .back-btn:hover{border-color:var(--accent);}
   footer{padding:20px 40px; color:var(--muted); font-size:12px; border-top:1px solid var(--border); text-align:center;}
+
+  /* ---- v7: Phối hợp phòng ban card ---- */
+  .coord-item{ border-color:#6a8fae; background:linear-gradient(135deg,rgba(106,143,174,.1),rgba(106,143,174,.02)); }
+  .coord-item:hover{ border-color:#4d7796; }
+
+  /* ---- v7: Modal Phối hợp với phòng ban khác ---- */
+  .coord-modal .modal-box{ max-width:920px; max-height:82vh; overflow-y:auto; text-align:left; }
+  .coord-modal .modal-box h3{ font-size:18px; }
+  .coord-cards{ display:flex; flex-direction:column; gap:12px; margin-top:8px; }
+  .coord-card{ background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:14px 16px; }
+  .coord-card .cc-dept{ font-weight:700; color:var(--accent2); font-size:14px; margin-bottom:8px; }
+  .coord-card .cc-row{ font-size:12.8px; line-height:1.6; margin-bottom:4px; }
+  .coord-card .cc-row b{ color:var(--muted); font-weight:600; margin-right:4px; }
+  .coord-close-wrap{ text-align:right; margin-top:16px; }
+
+  /* ---- v7: Detail page 2-column layout ---- */
+  .detail-grid2{ display:grid; grid-template-columns:1.6fr 1fr; gap:22px; margin-top:24px; }
+  @media (max-width:860px){ .detail-grid2{grid-template-columns:1fr;} }
+  .qt-block{ border-bottom:1px dashed var(--border); padding-bottom:16px; margin-bottom:16px; }
+  .qt-block:last-child{ border-bottom:none; margin-bottom:0; padding-bottom:0; }
+  .qt-block .qt-name{ font-weight:700; font-size:14px; color:var(--accent2); margin-bottom:10px; }
+  .proc-btn-list{ display:flex; flex-direction:column; gap:10px; }
+  .proc-btn-list a.detail-btn{ width:100%; justify-content:center; text-decoration:none; box-sizing:border-box; }
+
+  /* ---- v7: Admin per-item link editor (up to 10 buttons) ---- */
+  .admin-item-block{ background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin-bottom:12px; }
+  .admin-item-block .aib-title{ font-weight:700; font-size:14px; margin-bottom:10px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .admin-link-row{ display:flex; gap:10px; align-items:center; margin-bottom:8px; flex-wrap:wrap; }
+  .admin-link-row .row-idx{ width:20px; color:var(--muted); font-size:11.5px; text-align:right; }
+  .admin-link-row input.name-input{ flex:1 1 200px; }
+  .admin-link-row input.url-input{ flex:2 1 320px; }
+  .admin-item-block .admin-save-btn{ margin-top:6px; }
 </style>
 </head>
 <body>
@@ -189,7 +221,7 @@
   <div class="brand">
     <div class="logo">SOL</div>
     <div>
-      <h1>Bản đồ Quy trình Phòng ban — Sense Of Life (v5)</h1>
+      <h1>Bản đồ Quy trình Phòng ban — Sense Of Life (v7)</h1>
       <p>Tổng hợp từ tài liệu khảo sát/workshop nội bộ (docs/SOL)</p>
     </div>
   </div>
@@ -209,6 +241,15 @@
       <button class="modal-btn cancel" onclick="closePwModal()">Hủy</button>
       <button class="modal-btn confirm" onclick="checkPassword()">Xác nhận</button>
     </div>
+  </div>
+</div>
+
+<div class="modal-overlay coord-modal" id="coordModalOverlay">
+  <div class="modal-box">
+    <h3 id="coordTitle">🤝 Phối hợp với phòng ban khác</h3>
+    <p id="coordIntro"></p>
+    <div class="coord-cards" id="coordCards"></div>
+    <div class="coord-close-wrap"><button class="modal-btn cancel" onclick="closeCoordModal()">Đóng</button></div>
   </div>
 </div>
 
@@ -234,27 +275,22 @@
         <h2 id="d2title"></h2>
         <div class="summary" id="d2summary"></div>
       </div>
-      <button class="detail-btn" id="d2detailBtn" onclick="openDetailFlow()">📄 Quy trình chi tiết</button>
     </div>
-    <div class="detail-grid">
+    <div class="detail-grid2">
       <div>
         <div class="card">
-          <h3>Mô tả quy trình từng bước</h3>
-          <ol class="steps" id="d2steps"></ol>
+          <h3>1. Thông tin tổng quát</h3>
+          <div id="d2overview"></div>
+        </div>
+        <div class="card">
+          <h3>2. Hệ thống / Công cụ liên quan</h3>
+          <ul class="sys-list" id="d2systems"></ul>
         </div>
       </div>
       <div>
         <div class="card">
-          <h3>Vai trò / Người phụ trách</h3>
-          <div class="kv" id="d2roles"></div>
-        </div>
-        <div class="card">
-          <h3>Hệ thống / Công cụ liên quan</h3>
-          <ul class="sys-list" id="d2systems"></ul>
-        </div>
-        <div class="card">
-          <h3>Tài liệu / SOP liên kết</h3>
-          <ul class="sop-list" id="d2sops"></ul>
+          <h3>📄 Quy trình</h3>
+          <div class="proc-btn-list" id="d2buttons"></div>
         </div>
       </div>
     </div>
@@ -262,8 +298,8 @@
 
   <div id="page3">
     <button class="back-btn" onclick="goBackFromAdmin()">← Quay lại trang chính</button>
-    <p class="section-title">🔧 Trang quản trị — Gán link "Quy trình chi tiết"</p>
-    <p class="process-note">Chọn phòng ban, sau đó nhập đường link HTML cho từng nghiệp vụ rồi bấm Xác nhận. Link sẽ được dùng khi bấm nút "Quy trình chi tiết" ở trang chi tiết nghiệp vụ.</p>
+    <p class="section-title">🔧 Trang quản trị — Gán button "Quy trình chi tiết"</p>
+    <p class="process-note">Chọn phòng ban, sau đó với mỗi nghiệp vụ nhập tối đa 10 cặp Tên button + Link rồi bấm Lưu. Chỉ những dòng có đủ cả Tên và Link mới hiển thị thành button ở trang chi tiết nghiệp vụ.</p>
     <div class="dept-grid" id="adminDeptGrid"></div>
     <div class="process-panel" id="adminProcessPanel">
       <div class="process-panel-head">
@@ -795,10 +831,230 @@ const DATA = {
         steps:["Marketing đề xuất chương trình khuyến mãi","Trình duyệt qua memo 1Office","Kế toán cài đặt CTKM trên F2","Theo dõi hiệu quả chương trình"],
         sops:[]}
     ]
+  },
+  mktmoi:{
+    name:"Marketing (MKT)", icon:"📣", khoi:"Khối Vận hành",
+    note:"Phòng ban mới thêm 04/09/2026 — chưa có khảo sát/nghiệp vụ chi tiết, cần bổ sung qua workshop riêng. (Lưu ý: đã có sẵn 1 mục 'Marketing' khác trong hệ thống, gộp từ dữ liệu F2/CNV mini-zalo — mục này là phòng ban Marketing mới, độc lập, chờ khảo sát).",
+    processes:[]
+  },
+  duan:{
+    name:"Dự án & Bảo trì (SCM)", icon:"🛠️", khoi:"Khối Hỗ trợ Vận hành",
+    note:"Phòng ban mới thêm 04/09/2026 — chưa có khảo sát/nghiệp vụ chi tiết, cần bổ sung qua workshop riêng.",
+    processes:[]
   }
 };
 
 /* ============ SƠ ĐỒ TỔ CHỨC (mục 1.3 trong từng file khảo sát) ============ */
+const SURVEY = {
+  thumua: {
+    coordIntro: "Tổng cộng 9 phòng ban/đầu mối phối hợp",
+    coordination: [
+      {dept:"Kế toán (gồm cả Tài chính)", work:"Xử lý hồ sơ thanh toán; cung cấp giá mua để chốt công nợ NCC; tạo mã NCC/hàng hóa", exchange:"Nhận: Hóa đơn nhập hàng NCC; thông tin thanh toán (thường từ R&D, đôi khi Kế toán gửi khi R&D quên); tình trạng công nợ (Kế toán chậm → Thu mua deal NCC giãn hạn). Giao: PO; hợp đồng mua bán (bắt buộc với đơn >20 triệu); báo giá & so sánh giá; đề nghị thanh toán (hàng không thường xuyên: CCDC, tủ lạnh...); form tạo mã NCC/hàng mới", output:"PO, hợp đồng, báo giá/so sánh giá, đề nghị thanh toán", channel:"1Office (báo giá upload Excel → copy link gửi người duyệt; đề nghị thanh toán dùng form sẵn, import PNK + hóa đơn VAT + so sánh giá); hóa đơn/công nợ trao đổi trực tiếp; Email", freq:"Hằng ngày / hằng tháng"},
+      {dept:"Vận hành (Ops) — chị Dung (cao nhất); chị Vy (cụm Kohaku, Udon); anh Hậu (cụm \"Làng\")", work:"Xử lý đơn NVL & PR CCDC tạo từ cửa hàng; nhận forecast & nhu cầu đặt hàng", exchange:"Nhận: PR từ cửa hàng (NVL trên CukCuk/F2; CCDC trên 1Office); Forecast (món mới cần NVL gì, lượng bán dự kiến quy ra số ký); nhu cầu đặt hàng (món ngưng KD, giữ tồn bao nhiêu). Giao: PO cho Ops/nhà hàng; phản hồi & tiến độ giao hàng; báo cập nhật khi sai lệch ngày giao", output:"PO, thông tin tiến độ cung ứng", channel:"CukCuk/F2 (NVL); 1Office (CCDC); tin nhắn/mail nội bộ (PO & tiến độ — ngoài hệ thống)", freq:"Hằng ngày (NVL); hằng tháng (CCDC); phát sinh"},
+      {dept:"Marketing", work:"Cung cấp POSM (standee để bàn, khung mica QR, standee đứng, thẻ card Takeaway...); hỗ trợ tìm hàng cho chương trình KM (quà tặng)", exchange:"Nhận: Yêu cầu mua hàng; yêu cầu thiết kế (file in standee/thẻ); timeline chương trình (ngày cần về hàng). Giao: Báo giá; mẫu sản phẩm; kế hoạch cung ứng NCC", output:"Báo giá, mẫu, kế hoạch cung ứng", channel:"Email (check hàng, lấy báo giá); 1Office (PR chính thống sau khi duyệt chi phí → mua → thanh toán)", freq:"Theo chương trình, dự án"},
+      {dept:"Nhân sự", work:"Cung cấp đồng phục, quà tặng sinh nhật NV, văn phòng phẩm", exchange:"Nhận: Yêu cầu mua hàng, số lượng. Giao: Báo giá, PO, kế hoạch giao hàng", output:"Báo giá, PO, kế hoạch giao hàng", channel:"1Office (quy trình giống Marketing)", freq:"Hằng tháng / theo phát sinh"},
+      {dept:"QA/QC", work:"Thu mua đánh giá NCC về pháp lý, giá, hồ sơ năng lực (trước không ai làm nên Thu mua đang làm); QA đánh giá chất lượng SP khi giao tới", exchange:"Nhận: Tiêu chuẩn kỹ thuật; kết quả đánh giá chất lượng. Giao: Hồ sơ NCC; COA – chứng nhận; mẫu thử NCC (giao R&D, R&D giao QA/QC); thông tin SP (HSD, nơi SX, độ dày, tỷ lệ mỡ/nạc). Lỗi khi nhận hàng → nhà hàng báo trực tiếp Thu mua; lỗi khi hàng đã trong kho → QA phát hiện báo lại Thu mua", output:"Hồ sơ NCC, COA, mẫu thử, thông tin SP", channel:"Email (tiêu chuẩn, kết quả); tin nhắn/email (COA & hồ sơ PDF). Sắp tới phối hợp chị Ngân Thanh (QA) đi đánh giá NCC trực tiếp", freq:"Hàng tuần / sự vụ"},
+      {dept:"IT", work:"Thu mua kết nối NCC thiết bị mạng với IT; IT gửi thông số phần cứng/POS → Thu mua search NCC, chốt thông tin rồi kết nối cho IT (cài ID, thời gian giao)", exchange:"Nhận: Yêu cầu kỹ thuật, specification (qua chat). Giao: Báo giá, hồ sơ NCC (qua chat). Tạo PR/PO có BA IT vào duyệt", output:"Báo giá, hồ sơ NCC, PO", channel:"Chat (yêu cầu/thông số, báo giá, hồ sơ); 1Office (tạo PO → BA IT duyệt)", freq:"Theo phát sinh"},
+      {dept:"Dự án", work:"Tìm NCC cung cấp nội thất (Thu mua chốt giá trong budget của Dự án); bảng hiệu, tranh ảnh, cờ", exchange:"Nhận: Timeline dự án; yêu cầu kỹ thuật (chất liệu, kích thước, budget/SP). Giao: Báo giá, PO, tiến độ giao hàng & lắp đặt (Thu mua làm cầu nối NCC ↔ Dự án). Dự án tự trình PR trong tổng quan của họ (Thu mua không duyệt trên PR dự án)", output:"Báo giá, PO, tiến độ giao/lắp", channel:"Email; tin nhắn (nhận & giao không thao tác trên hệ thống)", freq:"Theo dự án"},
+      {dept:"R&D (PD)", work:"Thu mua kết nối NCC lấy mẫu → R&D test phát triển NVL mới; đổi NCC A→B gửi mẫu R&D đánh giá tương đồng; nội địa hóa nguyên liệu", exchange:"Nhận: Tiêu chuẩn sản phẩm; kết quả test mẫu. Giao: Mẫu NCC, báo giá, hồ sơ NVL. Thu mua phải chốt sản lượng/giá/thông tin TRƯỚC rồi mới chuyển R&D; R&D chốt mẫu sẽ lập \"phiếu đề xuất món mới\" hoặc \"phiếu đề xuất thay thế NVL\" trên 1Office", output:"Mẫu, báo giá, hồ sơ nguyên liệu", channel:"Email (mẫu, báo giá, tiêu chuẩn, kết quả); 1Office (R&D lập phiếu đề xuất sau khi Thu mua đã chốt)", freq:"Theo phát sinh R&D"},
+      {dept:"Ban Giám đốc (BOD)", work:"Phê duyệt NCC chiến lược, ngân sách & hợp đồng lớn; định hướng chiến lược kinh doanh", exchange:"Nhận: Thông tin NCC để ký; định hướng chiến lược (tăng SP A, giảm SP B) nhận từ GĐTC anh Vĩ / cuộc họp liên phòng ban. Giao: Báo cáo mua hàng theo tháng (đổ data FAST → Excel); phân tích chi phí mua hàng hàng tháng; đề xuất NCC (mới/thay thế). Phát sinh NCC → gửi BOD ký (Zalo để ký hợp đồng nhanh)", output:"Báo cáo mua hàng, phân tích chi phí, đề xuất NCC", channel:"1Office (so sánh NCC → anh Đông duyệt trực tiếp); Email; FAST; Zalo (ký hợp đồng); giấy (hợp đồng). Đề xuất NCC: anh Vĩ ký nháy, anh Đông ký chính thức", freq:"Hàng tháng / theo phát sinh"},
+    ],
+    nv: [
+      {code:"NV1", name:"Tiếp nhận yêu cầu mua hàng (PR)", desc:"Tiếp nhận & kiểm tra nhu cầu NVL (CukCuk/F2) và PR CCDC (1Office) từ phòng ban/cửa hàng; tư vấn ngược đúng nhu cầu. Cửa hàng đặt 2 đơn: 1 về CK, 1 về Thu mua", qts:[{id:"QT-01", name:"Tiếp nhận & tổng hợp đơn NVL từ cửa hàng (CukCuk/F2)", overview:{purpose:"Tập hợp nhu cầu NVL từ cửa hàng & CK, tổng hợp thành PO gửi NCC đúng lịch", trigger:"Cửa hàng tạo đơn (\"BA\") trên CukCuk/F2 theo lịch order (hàng daily 2-4-6; hàng khô 1 lần/tuần); deadline đặt trước 10h", input:"Đơn nhu cầu NVL (cửa hàng tạo 2 đơn: 1 về CK, 1 về Thu mua); đơn CK gối đầu đặt thêm cho Thu mua", output:"Đơn đã tổng hợp tại Kho tổng, tải Excel, lọc theo NCC để gửi PO", resultTo:"NCC (nhận đơn đặt → QT-08); nhà hàng kế thừa đơn để bấm nhập hàng", relatedDept:"Ops/cửa hàng, CK, Kế toán (giá chuẩn sau ngày 10 qua FAST)", frequency:"Lịch order 3 lần/tuần (2-4-6); hàng daily về hàng ngày; hàng khô 1 lần/tuần", sla:"⚠️ Chưa có SLA chính thức; mốc xử lý sau 10h–10h30 — DM-18"}, tools:["CukCuk", "F2", "CukCuk (Kho tổng = CK", "Excel", "Email", "tin nhắn"]}, {id:"QT-02", name:"Tiếp nhận PR CCDC / thiết bị (1Office)", overview:{purpose:"Tiếp nhận & kiểm tra nhu cầu mua CCDC/thiết bị từ phòng ban/cửa hàng; tư vấn ngược đúng nhu cầu", trigger:"Phòng ban/cửa hàng tạo đề xuất (PR) trên 1Office", input:"PR CCDC/thiết bị (vd tủ đông 4 cánh)", output:"PR được duyệt trên 1Office → chuyển sang lập PO (QT-09)", resultTo:"Thu mua (xử lý lập PO sau duyệt)", relatedDept:"Cửa hàng/phòng ban đề xuất, các cấp duyệt (AM, OM, GĐTC...), IT (nếu thiết bị)", frequency:"1 tháng 1 lần, trừ phát sinh", sla:"⚠️ Chưa có giới hạn thời gian duyệt trên 1Office (GAP-02)"}, tools:["1Office", "trao đổi"]}, {id:"QT-03", name:"Tiếp nhận & xử lý Forecast nhu cầu", overview:{purpose:"Tiếp nhận dự báo nhu cầu (món mới, chương trình, ngừng/giảm hàng) để điều chỉnh kế hoạch đặt hàng", trigger:"Ops/AM gửi forecast (vd món mới sắp chạy; ngừng món, giữ tồn 10 chai sốt)", input:"Forecast lượng bán dự kiến (tô/doanh thu → quy ra số ký); thông tin ngừng/giảm hàng", output:"Điều chỉnh kế hoạch đặt hàng / báo NCC ngừng-giảm", resultTo:"Nội bộ Thu mua (cập nhật kế hoạch); NCC (báo ngừng/giảm)", relatedDept:"Ops, AM (trước đây), NCC", frequency:"Không định kỳ", sla:""}, tools:["Trao đổi"]}]},
+      {code:"NV2", name:"Tìm kiếm & đánh giá NCC", desc:"Tìm NCC mới, đánh giá hồ sơ năng lực, giá, công nợ, thời gian giao. Dùng cho sản phẩm mới; sản phẩm cũ chốt giá đầu tháng", qts:[{id:"QT-04", name:"Tìm kiếm & đánh giá nhà cung cấp", overview:{purpose:"Tìm NCC mới, đánh giá năng lực & điều kiện hợp tác cho sản phẩm/hàng mới", trigger:"Phát sinh nhu cầu sản phẩm mới / cần thay NCC", input:"Hồ sơ năng lực NCC, giá cả, công nợ, thời gian giao hàng", output:"Chọn được NCC; gửi giấy tờ cho QA; trình duyệt (1Office/Zalo)", resultTo:"QA/QC, R&D, BOD (đề xuất NCC)", relatedDept:"QA/QC, R&D, BOD", frequency:"Phát sinh (sản phẩm mới)", sla:"⚠️ chưa xác định"}, tools:["Email", "Excel", "trao đổi", "1Office", "Zalo"]}, {id:"QT-05", name:"Tái đánh giá NCC hiện hữu", overview:{purpose:"— Theo dõi & tái đánh giá chất lượng/giá/công nợ/thời gian giao của NCC đang hoạt động", trigger:"", input:"", output:"", resultTo:"", relatedDept:"QA/QC, BOD", frequency:"", sla:""}, tools:[]}]},
+      {code:"NV3", name:"Yêu cầu báo giá (RFQ)", desc:"Gửi RFQ, thu thập & so sánh báo giá; NCC gửi định kỳ ~25 hàng tháng", qts:[{id:"QT-06", name:"Yêu cầu, so sánh & chốt báo giá (RFQ)", overview:{purpose:"Thu thập & so sánh báo giá NCC để chốt giá mua", trigger:"Định kỳ ~25 hàng tháng NCC gửi báo giá; hoặc sản phẩm mới / biến động thị trường", input:"Báo giá từ các NCC", output:"Bảng tổng hợp & so sánh giá; chốt giá định kỳ đầu tháng, cập nhật file báo giá", resultTo:"Nội bộ Thu mua (cơ sở đặt hàng, đề nghị thanh toán); Kế toán/Tài chính khi duyệt mua", relatedDept:"NCC, Kế toán/Tài chính", frequency:"Hằng ngày (RFQ phát sinh); chốt giá định kỳ đầu tháng", sla:"Thường hoàn tất trước ngày 1 tháng sau ⚠️ cần xác nhận — DM-18"}, tools:["Email", "Excel", "1Office"]}]},
+      {code:"NV4", name:"Đàm phán giá & điều khoản", desc:"Thương lượng giá, thanh toán, giao hàng, hợp đồng; deal giảm 5–10% khi sản lượng lớn", qts:[{id:"QT-07", name:"Đàm phán giá & điều khoản thương mại", overview:{purpose:"Thương lượng giá & điều khoản (thanh toán, giao hàng, hợp đồng) để có giá tốt nhất", trigger:"Sau khi nhận & so sánh báo giá, xác định NCC giá tốt nhất", input:"Báo giá NCC, sản lượng dự kiến", output:"Chốt giá & điều khoản với NCC", resultTo:"Lập PO (NV5); Kế toán (hợp đồng nếu >20 triệu)", relatedDept:"NCC, Kế toán/Tài chính", frequency:"Theo phát sinh đặt hàng", sla:"⚠️ chưa xác định"}, tools:["Excel", "Trao đổi", "email"]}]},
+      {code:"NV5", name:"Tạo & phát hành PO", desc:"Sau duyệt 1Office, lập PO & gửi NCC (CCDC, thiết bị, dự án). Đơn CukCuk (NVL) không cần phê duyệt", qts:[{id:"QT-08", name:"Tạo & phát hành PO hàng NVL (CukCuk)", overview:{purpose:"Phát hành PO NVL gửi NCC", trigger:"Sau khi tổng hợp đơn NVL (QT-01), đổ đơn ra", input:"Đơn NVL đã tổng hợp theo NCC", output:"PO đã gửi NCC", resultTo:"NCC; nhà hàng (thông báo ngày về hàng)", relatedDept:"NCC, cửa hàng, CK", frequency:"Hằng ngày", sla:"Xử lý sau 10h sáng"}, tools:["CukCuk", "Excel", "Email", "tin nhắn", "Tin nhắn nội bộ"]}, {id:"QT-09", name:"Tạo & phát hành PO CCDC / thiết bị (1Office)", overview:{purpose:"Phát hành PO CCDC/thiết bị/hàng phát sinh sau khi được duyệt", trigger:"PR đã được duyệt đủ cấp trên 1Office (QT-02)", input:"PR đã duyệt, báo giá đã chốt", output:"PO đã gửi NCC; NCC xác nhận ngày giao", resultTo:"NCC; (BA IT duyệt với hàng liên quan IT)", relatedDept:"NCC, IT (BA IT duyệt), phòng ban đề xuất", frequency:"Theo phát sinh", sla:"⚠️ Phụ thuộc thời gian duyệt (chưa giới hạn) (GAP-02)"}, tools:["1Office", "email"]}, {id:"QT-10", name:"Mua sắm cho Dự án (nội thất, bảng hiệu)", overview:{purpose:"Tìm NCC cung cấp nội thất, bảng hiệu, tranh ảnh, cờ... cho dự án mở mới", trigger:"Dự án gửi timeline & yêu cầu kỹ thuật (chất liệu, kích thước, budget/SP)", input:"Timeline dự án, yêu cầu kỹ thuật, budget", output:"Báo giá/PO; tiến độ giao & lắp đặt phản hồi Dự án", resultTo:"Dự án (tự trình PR trong tổng quan của họ); NCC", relatedDept:"Dự án, NCC", frequency:"Theo dự án", sla:""}, tools:["Email", "tin nhắn"]}]},
+      {code:"NV6", name:"Theo dõi giao hàng & xử lý phát sinh", desc:"Theo dõi tiến độ giao, xử lý thiếu/trễ/trả hàng. Chỉ quan tâm 2 bước: NCC→shop & NCC→CK", qts:[{id:"QT-11", name:"Theo dõi giao hàng & xử lý phát sinh", overview:{purpose:"Theo dõi tiến độ giao hàng, xử lý thiếu/trễ hàng", trigger:"Sau khi gửi PO cho NCC", input:"PO, lịch giao hàng", output:"Nhà hàng/CK nhận đủ hàng → cơ sở làm thanh toán", resultTo:"Ops/nhà hàng (báo tiến độ); Kế toán (khi nhận đủ → thanh toán)", relatedDept:"NCC, Ops/nhà hàng, CK, QA (nếu hàng lỗi)", frequency:"Hằng ngày", sla:"⚠️ chưa xác định"}, tools:["Kênh ngoài (chat", "mail", "Tin nhắn", "CukCuk", "1Office"]}, {id:"QT-12", name:"Quy trình trả hàng NCC", overview:{purpose:"Xử lý hàng lỗi/không đạt bằng cách trả lại NCC theo quy trình có đủ chứng từ", trigger:"Nhà hàng/CK phát hiện hàng lỗi khi nhận hoặc QA phát hiện trong kho; Thu mua & NCC thống nhất trả hàng", input:"Hàng lỗi; thông báo từ nhà hàng/CK hoặc QA", output:"Hàng trả về NCC; số liệu cập nhật CukCuk & FAST; Kế toán điều chỉnh công nợ", resultTo:"Phiếu xuất trả hàng (2 liên) → NCC giữ 1, nhà hàng giữ 1; Kế toán nhận định kỳ", relatedDept:"NCC, Kế toán, QA", frequency:"Phát sinh", sla:""}, tools:[]}]},
+      {code:"NV7", name:"Quản lý hợp đồng & hồ sơ NCC", desc:"Lưu trữ, cập nhật hợp đồng, hồ sơ pháp lý & báo giá. Đang lưu trữ giấy + scan", qts:[{id:"QT-13", name:"Quản lý hợp đồng & hồ sơ NCC", overview:{purpose:"Lưu trữ, cập nhật hợp đồng & hồ sơ pháp lý NCC làm cơ sở pháp lý cho giao dịch", trigger:"Sau khi ký hợp đồng mới / khi cập nhật hồ sơ NCC", input:"Hợp đồng mua bán (bắt buộc với đơn >20 triệu), hồ sơ pháp lý NCC", output:"Hợp đồng/hồ sơ được lưu (giấy + scan)", resultTo:"Kế toán (hồ sơ thanh toán cần hợp đồng); QA (khi đánh giá)", relatedDept:"Kế toán, NCC, BOD, QA", frequency:"Hằng tháng / phát sinh", sla:"⚠️ không có SLA"}, tools:["Giấy", "Máy scan + thư mục", "Tủ hồ sơ"]}]},
+      {code:"NV8", name:"Đối chiếu thanh toán & công nợ NCC", desc:"Phối hợp Kế toán xác nhận công nợ & hồ sơ thanh toán; tự làm đề nghị thanh toán cho hàng không thường xuyên", qts:[{id:"QT-14", name:"Đề nghị thanh toán & đối chiếu công nợ NCC", overview:{purpose:"Đảm bảo NCC được thanh toán đúng hạn, đúng số; phối hợp Kế toán theo dõi & xử lý công nợ", trigger:"Sau khi nhận đủ hàng (NVL: Kế toán xử lý định kỳ; CCDC/phát sinh: Thu mua tự làm đề nghị thanh toán)", input:"PNK; hóa đơn VAT; so sánh giá (nếu có); phiếu giao hàng", output:"Đề nghị thanh toán được duyệt trên 1Office; Kế toán chi tiền", resultTo:"Kế toán (chi tiền) → NCC", relatedDept:"Kế toán/Tài chính, NCC", frequency:"Theo thỏa thuận ; công nợ hàng tuần/tháng", sla:"Theo thỏa thuận công nợ từng NCC ⚠️"}, tools:["1Office", "Tin nhắn", "FAST", "Email", "giấy"]}, {id:"QT-15", name:"Theo dõi công nợ định kỳ", overview:{purpose:"Theo dõi & đối chiếu công nợ NCC định kỳ, phối hợp Kế toán", trigger:"Đến kỳ công nợ (hàng tuần/tháng)", input:"Tình trạng công nợ từ Kế toán", output:"Công nợ được xác nhận/xử lý", resultTo:"Kế toán; NCC (deal gia hạn nếu cần)", relatedDept:"Kế toán/Tài chính, NCC", frequency:"Theo thỏa thuận; hàng tuần/tháng", sla:""}, tools:["Trao đổi"]}]},
+      {code:"NV9", name:"Quản lý dữ liệu giá mua", desc:"Cập nhật giá, theo dõi biến động & danh mục. SP mới: điền form gửi Kế toán; SP đang KD: đổi giá đầu tháng", qts:[{id:"QT-16", name:"Tạo mã & cập nhật giá sản phẩm / NCC mới hoàn toàn", overview:{purpose:"Tạo mã SP/NCC mới trên hệ thống (FAST) & cập nhật giá mua trước khi mua bán", trigger:"Có sản phẩm mới hoàn toàn / NCC mới, sau khi đã được duyệt", input:"Thông tin SP (tên, quy cách, đơn vị, giá mua); thông tin NCC", output:"Form được ký, gửi Kế toán nhập FAST & chốt công nợ", resultTo:"Kế toán (Kế toán trưởng nếu chỉ tạo mã; GĐTC nếu thêm NCC)", relatedDept:"Kế toán/Tài chính", frequency:"1 lần/tháng / theo phát sinh", sla:"⚠️ chưa xác định"}, tools:["Form", "giấy", "FAST", "Excel"]}, {id:"QT-17", name:"Cập nhật biến động giá định kỳ", overview:{purpose:"Cập nhật biến động giá SP đang kinh doanh vào file báo giá làm cơ sở PO & báo cáo", trigger:"Đầu tháng (sau chốt giá); giữa tháng (biến động đột xuất)", input:"Giá chốt mới từ NCC (sau QT-06/QT-07)", output:"File báo giá tháng được cập nhật", resultTo:"Nội bộ Thu mua (cơ sở PO QT-08, báo cáo QT-18)", relatedDept:"NCC", frequency:"Hằng tháng; phát sinh", sla:"Cập nhật trước ngày 1 tháng mới"}, tools:["Excel"]}]},
+      {code:"NV10", name:"Báo cáo & phân tích mua hàng", desc:"Đổ data FAST → Excel (Vlookup, pivot); báo cáo total tháng + 80/20; theo tuần với mặt hàng biến động", qts:[{id:"QT-18", name:"Lập báo cáo mua hàng tháng & phân tích chi phí (80/20)", overview:{purpose:"Cung cấp BOD bức tranh chi phí mua hàng tháng; hỗ trợ ra quyết định tối ưu chi phí & chiến lược NCC", trigger:"Sau ngày 10 hàng tháng (Kế toán xử lý xong, đẩy data FAST)", input:"Data thô từ FAST & CukCuk; file báo giá", output:"Báo cáo chi phí mua hàng tháng (total + 80/20) gửi BOD", resultTo:"BOD / GĐTC", relatedDept:"BOD, Kế toán (cung cấp data)", frequency:"Hàng tháng; theo tuần với mặt hàng biến động (cá hồi)", sla:"Sau ngày 10; không tốn nhiều thời gian nếu file đã cài Vlookup; ~700–800 mặt hàng"}, tools:["CukCuk", "FAST", "Excel", "Email"]}, {id:"QT-19", name:"Phân tích biến động giá theo tuần", overview:{purpose:"Theo dõi & phân tích biến động giá theo tuần với mặt hàng nhạy giá (vd cá hồi)", trigger:"Mặt hàng có biến động giá mạnh trong kỳ", input:"Số lượng mua & giá theo tuần", output:"So sánh tuần này vs tuần trước; báo NCC sản lượng tuần sau", resultTo:"Nội bộ Thu mua; NCC", relatedDept:"NCC", frequency:"Hàng tuần (mặt hàng biến động)", sla:""}, tools:["Excel"]}]},
+      {code:"NV11", name:"Phát triển NVL mới & nội địa hóa (phối hợp R&D)", desc:"Kết nối NCC cung cấp mẫu cho R&D test; ưu tiên nội địa hóa; thay thế NCC A→B", qts:[{id:"QT-20", name:"Cung cấp mẫu & hồ sơ NVL mới cho R&D", overview:{purpose:"Cung cấp R&D nguyên liệu/sản phẩm mẫu để test phát triển món mới / thay thế NVL", trigger:"R&D có nhu cầu phát triển; Thu mua phát hiện nguyên liệu tiềm năng; thị trường có NVL mới", input:"Yêu cầu từ R&D hoặc chủ động từ Thu mua", output:"R&D test xong; nếu đạt → Thu mua chốt giá/sản lượng → R&D lập phiếu đề xuất 1Office", resultTo:"R&D (làm phiếu đề xuất); Kế toán (tạo mã — QT-16)", relatedDept:"R&D, QA (COA, VSATTP), NCC", frequency:"Phát sinh", sla:"⚠️ phụ thuộc thời gian test R&D"}, tools:["Email", "1Office", "điện thoại", "tin nhắn", "Vật lý + email", "Vật lý"]}, {id:"QT-21", name:"Nội địa hóa nguyên liệu nhập khẩu", overview:{purpose:"Tìm sản phẩm sản xuất trong nước thay thế nguyên liệu nhập khẩu để giảm chi phí", trigger:"Có sản phẩm nội địa tương đương trên thị trường; chi phí nhập khẩu tăng", input:"Thông tin thị trường; mẫu sản phẩm nội địa", output:"NVL nội địa được chấp thuận thay thế (qua R&D test)", resultTo:"Tương tự QT-20 (gửi mẫu R&D, QA đánh giá)", relatedDept:"R&D, QA", frequency:"Phát sinh", sla:""}, tools:[]}]},
+    ]
+  },
+  ck: {
+    coordIntro: "",
+    coordination: [
+      {dept:"Nhà hàng", work:"Nhà hàng đặt hàng, CK giao hàng theo đơn", exchange:"Nhận: Đơn đặt hàng / Giao: Hàng hóa theo đơn + phiếu xuất kho", output:"", channel:"", freq:"Hệ thống & Zalo: hàng ngày; Call: 2–3 lần/tuần; qua Sếp: cuối tuần"},
+      {dept:"Mua hàng / Thu mua", work:"CK tạo order mua NVL; Thu mua xử lý với NCC; NCC giao về CK", exchange:"Nhận: NVL từ NCC / Giao: Purchase Order, yêu cầu mua", output:"", channel:"", freq:"Hàng ngày"},
+      {dept:"Kế toán (AF)", work:"Kiểm kê cuối tháng, chốt số NXT, làm giá sản phẩm, ra P&L", exchange:"Nhận: Báo cáo P&L, giá thành SP / Giao: Dữ liệu NXT hàng ngày (CukCuk), kết quả kiểm đếm", output:"", channel:"", freq:"Kiểm đếm: cuối tháng; NXT: hàng ngày; Làm giá: ngày 8–10; P&L: ngày 10–11"},
+      {dept:"QA/QC", work:"Đảm bảo tiêu chuẩn SOL và pháp luật VSATTP", exchange:"Nhận: Thông tin SP không phù hợp (case trả hàng) / Giao: Phản hồi chất lượng NVL; phản hồi kiểm soát côn trùng", output:"", channel:"", freq:"Khi phát sinh"},
+      {dept:"Nhân sự (HR / C&B)", work:"Tuyển dụng nhân sự CK; chốt công chốt lương", exchange:"Nhận: Danh sách ứng viên / Giao: Kết quả phỏng vấn, yêu cầu tuyển", output:"", channel:"", freq:"Tuyển dụng: khi phát sinh; Chốt công: ngày 2–4; Chốt lương: ngày 2–8; Trả lương: ngày 10"},
+      {dept:"Bảo trì (share)", work:"Sửa chữa thiết bị CK; quản lý kho kế toán", exchange:"Nhận: — / Giao: —", output:"", channel:"", freq:"Chưa có"},
+      {dept:"Phòng Dự án", work:"Sửa chữa / bảo trì nhà xưởng; mua mới thiết bị", exchange:"Nhận: Báo giá sửa chữa/mua mới / Giao: Yêu cầu sửa chữa, Đề xuất phê duyệt", output:"", channel:"", freq:"Khi phát sinh"},
+      {dept:"R&D", work:"Thử nghiệm NVL/BTP mới, chốt tiêu chuẩn đầu vào và quy trình SX", exchange:"Nhận: Yêu cầu thử nghiệm + mẫu NVL từ Thu mua / Giao: BTP thử nghiệm (định mức thu hồi, quy cách, SP vật lý); kết quả Duyệt/Không duyệt", output:"", channel:"", freq:"4–5 lần/tháng"},
+      {dept:"BOD", work:"Xây dựng KPI/KPO hằng năm (AOP)", exchange:"Nhận: Định hướng chiến lược, chốt KPI / Giao: AOP, phân tích dữ liệu, trình bày", output:"", channel:"", freq:"Cuối năm (tháng 10–11)"},
+      {dept:"Nhà thầu phụ Logistic (3SA, 3S)", work:"Giao hàng hệ thống theo lịch cố định; giao ad hoc qua Ahamove", exchange:"Nhận: Xác nhận giao nhận hàng / Giao: Hàng hóa + lịch giao + phiếu xuất", output:"", channel:"", freq:"Theo lịch cố định + khi phát sinh ad hoc"},
+      {dept:"Training", work:"Đào tạo ATLĐ, VSATTP, định hướng nhân viên mới", exchange:"Nhận: Lịch đào tạo, danh sách / Giao: Danh sách nhân viên cần đào tạo", output:"", channel:"", freq:"Khi có lịch"},
+      {dept:"QA (dotted line)", work:"Kiểm soát chất lượng đầu vào → văn bản hóa tiêu chuẩn NVL", exchange:"Nhận: Tiêu chuẩn NVL (⚠️ chưa nhận được) / Giao: —", output:"", channel:"", freq:"⚠️ Chưa có tương tác chính thức; CK chưa nhận văn bản tiêu chuẩn từ QA"},
+    ],
+    nv: [
+      {code:"NV1", name:"Order & Giao hàng", desc:"Tiếp nhận đơn nhà hàng, chia hàng, xuất kho & giao theo lịch", qts:[{id:"QT-01", name:"Tiếp nhận & tổng hợp đơn hàng nhà hàng", overview:{purpose:"Tiếp nhận yêu cầu mua hàng (YCMH) từ nhà hàng, lọc đơn hợp lệ theo route, tổng hợp thành file chia hàng & cơ sở đặt Thu Mua", trigger:"Nhà hàng tạo YCMH trên F2Tech theo route cố định (2-4-6 / 3-5-7); tỉnh (Đà Nẵng) đặt trước 7 ngày", input:"YCMH nhà hàng trên F2Tech (nội bộ) + CukCuk (nhượng quyền) + file Excel/Zalo (một số NQ)", output:"File tổng hợp đơn theo ngày giao, đã loại đơn rớt, sort theo thứ tự nhà để chia hàng", resultTo:"Bộ phận chia hàng (kho) + luồng đặt Thu Mua (mã đầu 1) — xem QT-02, QT-08", relatedDept:"Nhà hàng (Vận hành), OM/AM (duyệt đơn), CK (Admin Doanh)", frequency:"Hàng ngày — Doanh vào hệ thống ~14h để lấy đơn cho ngày giao kế tiếp", sla:"Nhà hàng được bổ sung/hủy/chỉnh sửa trước 10h ngày tiếp theo; sau 10h CK mới xử lý phiếu"}, tools:["F2Tech", "CukCuk", "F2Tech → Excel"]}, {id:"QT-02", name:"Lên lịch & chia hàng (phân bổ) về store", overview:{purpose:"Phân bổ (chia) hàng theo nhu cầu từng store dựa trên file tổng hợp đơn; đóng gói vào công/rổ/thùng", trigger:"Sau khi Doanh xuất file tổng hợp đơn (QT-01); kế hoạch SX chốt số SL từ chiều hôm trước", input:"File Excel chia hàng (sort theo nhà), tồn kho thành phẩm, phần hàng do SX giao qua kho", output:"Hàng đã chia vào công/rổ/thùng theo từng nhà; ghi số kiện; sửa SL thực xuất trên phiếu tay", resultTo:"Thủ kho / Logistic (xuất kho QT-03); Doanh (cập nhật SL thực xuất → tạo phiếu xuất)", relatedDept:"CK (kho, NV soạn hàng, Doanh), Nhà hàng", frequency:"Hàng ngày theo route; hàng đông soạn sáng ngày giao (không trữ sẵn được)", sla:"Sáng ~7h xe đã tới; hàng mát/khô có thể soạn chiều hôm trước, hàng đông soạn sáng"}, tools:["Thực địa", "Tem + túi", "Công", "rổ", "thùng", "Phiếu tay"]}, {id:"QT-03", name:"Xuất kho & giao hàng (qua nhà thầu vận chuyển)", overview:{purpose:"Tạo phiếu xuất (nội bộ / xuất khác), in phiếu, bàn giao nhà thầu VC theo xe → giao store đúng route (OTIF)", trigger:"Kho đã soạn xong & báo SL thực xuất/số kiện (QT-02)", input:"YCMH đã duyệt & hợp lệ, SL thực xuất, số kiện, phân xe", output:"Phiếu xuất được tạo & in; hàng lên xe theo route; nhà hàng nhận (đối chiếu số kiện)", resultTo:"Nhà hàng (nhận hàng)", relatedDept:"CK (Thủ kho, Logistic, Doanh), Nhà thầu VC (3SA, 3S), Nhà hàng", frequency:"Theo route cố định (2-4-6 / 3-5-7); sáng ~7h xe tới", sla:"KPI OTIF — hiện chưa đo tự động; đối chiếu với tài xế chỉ theo số kiện (không đếm chi tiết)"}, tools:["F2Tech", "F2Tech (kỳ vọng", "F2Tech + máy in", "Lịch", "xe (ngoài HT", "Zalo"]}]},
+      {code:"NV2", name:"Kế hoạch & Thực thi SX", desc:"Lập kế hoạch theo đơn; sơ chế–chế biến–đóng gói", qts:[]},
+      {code:"NV3", name:"Mua hàng & Tiếp nhận NVL", desc:"Tạo order NVL, nhận hàng từ NCC", qts:[]},
+      {code:"NV4", name:"Quản lý kho & NXT", desc:"Cập nhật NXT hàng ngày; kiểm kê & chốt cuối tháng", qts:[{id:"QT-10", name:"Kiểm kê cuối tháng & Chốt số liệu NXT", overview:{purpose:"Xác nhận số lượng hàng hóa tồn thực tế tại CK; đối chiếu với dữ liệu hệ thống; chốt số liệu NXT chính xác làm cơ sở ra giá thành và báo cáo P&L", trigger:"Cuối tháng (thường ngày 30/31) — Kế toán và CK cùng xuống thực địa", input:"Dữ liệu NXT trên CukCuk (CK cập nhật hàng ngày); hàng hóa tồn thực tế tại kho CK", output:"Số liệu NXT được hai bên đồng thuận → nhập lên FAST; CK cập nhật lại CukCuk → Kế toán làm giá thành (ngày 8–10) → Nhận P&L (ngày 10–11)", resultTo:"Kế toán nhận số NXT chính xác để làm giá trên FAST; CK nhận báo cáo P&L qua email", relatedDept:"CK (Thủ kho, Manager) + Kế toán (AF)", frequency:"1 lần/tháng (cuối tháng)", sla:"Kiểm đếm: 1 ngày / Làm giá: ngày 8–10 / P&L: ngày 10–11"}, tools:["Thực địa", "Excel", "Zalo", "FAST", "CukCuk", "FAST + Zalo", "Zalo + FAST", "Email"]}]},
+      {code:"NV5", name:"Quản trị giá thành & P&L", desc:"Làm giá, chốt giá, theo dõi P&L", qts:[{id:"QT-11", name:"Làm giá & chốt giá sản phẩm", overview:{purpose:"Xác định giá thành sản phẩm CK sau kiểm kê; là cơ sở tính P&L", trigger:"Sau khi chốt số liệu NXT kiểm kê (ngày 8–10)", input:"Số liệu NXT đã chốt trên FAST; định mức thu hồi thực tế", output:"Giá thành sản phẩm được Kế toán + CK đồng thuận; nhập FAST", resultTo:"Cơ sở tính P&L CK → báo cáo cho BOD", relatedDept:"CK (Manager) + Kế toán", frequency:"Hàng tháng (ngày 8–10 sau kiểm kê)", sla:"2–3 ngày"}, tools:[]}]},
+      {code:"NV6", name:"Thử nghiệm NVL/BTP mới", desc:"Sơ chế mẫu, cân định mức thu hồi, gửi R&D duyệt", qts:[{id:"QT-12", name:"Thử nghiệm Nguyên vật liệu mới", overview:{purpose:"Đánh giá chất lượng, tỷ lệ thu hồi và tính khả thi sản xuất của NVL mới trước khi đưa vào sản xuất chính thức; làm cơ sở xác định giá thành thực tế", trigger:"Thu mua tìm được NVL mới hoặc thay đổi NCC; R&D yêu cầu thử nghiệm", input:"Mẫu NVL mới từ NCC (giao qua Thu mua về CK); yêu cầu thử nghiệm từ R&D", output:"R&D trả kết quả Duyệt / Không duyệt → Nếu Duyệt: QA văn bản hóa tiêu chuẩn → Thu mua nhận quy cách để làm việc với NCC", resultTo:"R&D: nhận mẫu BTP + định mức thu hồi + quy cách / QA: nhận kết quả duyệt để ban hành tiêu chuẩn / Thu mua: nhận quy cách để đàm phán với NCC", relatedDept:"CK + Thu mua + R&D + QA", frequency:"4–5 lần/tháng", sla:"⚠️ Chưa xác định — không có SLA chính thức"}, tools:["Zalo (thông báo", "vật lý", "CukCuk", "F2Tech", "Thiết bị sơ chế", "Cân + ghi chép tay", "Nội bộ R&D", "Zalo + hệ thống", "Tài liệu nội bộ"]}]},
+      {code:"NV7", name:"Quản trị chất lượng & ATTP", desc:"Phản hồi chất lượng NVL, pest control", qts:[]},
+      {code:"NV8", name:"Sửa chữa / Bảo trì nhà xưởng", desc:"Đề xuất, duyệt sửa chữa/mua mới thiết bị", qts:[]},
+      {code:"NV9", name:"Nhân sự", desc:"Tuyển dụng, chấm công, chốt lương, đào tạo", qts:[]},
+      {code:"NV10", name:"Lập kế hoạch năm (AOP/KPI)", desc:"Xây dựng AOP, chốt KPI/KPO với BOD", qts:[]},
+    ]
+  },
+  daotao: {
+    coordIntro: "",
+    coordination: [
+      {dept:"Kế toán", work:"1. Ghi nhận/ cập nhật/ ban hành Quy trình thu ngân/ kiểm kê/ order hàng hóa", exchange:"Nhận: Quy trình mới, sau đó cập nhật tài liệu đào tạo thu ngân & ISM <br> Giao: -", output:"Tài liệu đào tạo thu ngân & ISM được cập nhật theo quy trình mới", channel:"Email", freq:"Phát sinh"},
+      {dept:"HR (Nhân sự)", work:"1. Ghi nhận/ cập nhật/ Ban hành quy chế đào tạo & training roadmap khớp career path. <br> 2. Phối hợp tổ chức event/ teambuilding", exchange:"Nhận: DS nhân sự mới, DS account. <br> Giao: File báo cáo kết quả đào tạo (performance)", output:"Báo cáo kết quả đào tạo (pass/fail/vắng) <br> List nhân sự mới đã được Orientation", channel:"Email <br> Phần mềm", freq:"Hàng tuần / phát sinh"},
+      {dept:"OPS (Operation)", work:"1. Từ các thông tin vận hành, biên soạn thành bộ tiêu chuẩn. <br> 2. Biên soạn module ISM cho các cấp quản lý. <br> 3. Giám sát kết quả ISB/ISP", exchange:"Nhận: Thông tin vận hành. <br> Giao: bộ SOP, module ISM. <br> Ghi chú: OPS tự OJT cho T1–T3 tại store; Training cung cấp tài liệu + theo dõi", output:"Bộ SOP vận hành & module ISM <br> Kết quả ISB/ ISP được theo dõi", channel:"Email", freq:"Liên tục / hàng tuần"},
+      {dept:"Thu mua", work:"-", exchange:"Nhận: <br> Giao:", output:"-", channel:"-", freq:"-"},
+      {dept:"CK", work:"-", exchange:"Nhận: <br> Giao:", output:"-", channel:"-", freq:"-"},
+      {dept:"Dự án và Bảo trì", work:"-", exchange:"Nhận: <br> Giao:", output:"-", channel:"-", freq:"-"},
+      {dept:"Đào tạo", work:"-", exchange:"Nhận: <br> Giao:", output:"-", channel:"-", freq:"-"},
+      {dept:"QA/QC", work:"1. Cập nhật tiêu chuẩn VSATTP <br> 2. Tạo checklist chấm điểm <br> 3. Mở lớp VSATTP", exchange:"Nhận: File Tiêu chuẩn ATTP, các quy định mới. <br> Giao: DS lớp & tổ chức lớp (QA giảng, Đào Tạo tổ chức lớp) <br>", output:"Tài liệu/checklist cập nhật theo tiêu chuẩn ATTP mới. <br> Lớp VSATTP được tổ chức", channel:"Email", freq:"Định kỳ / khi có thay đổi"},
+      {dept:"Marketing", work:"1. Đào tạo khi có menu mới, chương trình KM/quảng cáo tại cửa hàng", exchange:"Nhận: Yêu cầu mở lớp đào tạo + nội dung. <br> Giao: tổ chức lớp (Marketing giảng, Đào tạo tổ chức lớp)", output:"Lớp đào tạo menu mới/chương trình KM được tổ chức cho OPS", channel:"Email", freq:"Phát sinh theo campaign"},
+      {dept:"R&D / BD (Product Dev.)", work:"1. Tiếp nhận quy trình làm món, định lượng, bảo quản, ... Từ đó sẽ chuẩn hóa thành tài liệu", exchange:"Nhận: .... <br> Giao: Bộ SOP về món + recipe chart", output:"Tài liệu SOP món + recipe chart hoàn chỉnh, đã được R&D xác nhận", channel:"Trực tiếp tại bếp", freq:"Phát sinh (món mới)"},
+      {dept:"IT", work:"-", exchange:"Nhận: <br> Giao:", output:"-", channel:"-", freq:"-"},
+    ],
+    nv: [
+      {code:"NV1", name:"Đào tạo ISB/ISP (In-house + Franchise + NSO)", desc:"Tổ chức lớp (Franchise/NSO); In-house học OJT tại cửa hàng. Ghi nhận kết quả & follow", qts:[{id:"QT-01", name:"Đào tạo ISB/ISP — Quy trình tổng thể", overview:{purpose:"Đảm bảo nhân viên cửa hàng (T1–T3) đủ kiến thức & kỹ năng đúng chuẩn (pass cả thực hành & lý thuyết)", trigger:"", input:"", output:"", resultTo:"Báo cáo sau đào tạo → HR + quản lý phòng ban liên quan", relatedDept:"OPS (OJT trực tiếp), Training (tài liệu + theo dõi + tổ chức thi), HR (nhận kết quả)", frequency:"Liên tục (không gom nhóm chờ)", sla:"⚠️ Chưa ghi nhận"}, tools:["SOP (giấy", "PDF", "Form đánh giá (giấy", "TreeAMS (⚠️ công cụ hiện tại — DM-02", "TreeAMS → Excel", "Excel", "Email", "TreeAMS"]}]},
+      {code:"NV2", name:"Đào tạo ISM", desc:"Đào tạo kỹ năng quản lý: học → thực hành (skill assessment) → test lý thuyết", qts:[]},
+      {code:"NV3", name:"Sát hạch / Certify (In-house + Franchise)", desc:"Lý thuyết (thi tập trung) + thực hành (vận hành ca); cấp giám sát trở lên có vấn đáp ban giám đốc", qts:[]},
+      {code:"NV4", name:"Xây dựng & cập nhật, ban hành tài liệu", desc:"Biên soạn theo chiến lược/TNA; cập nhật tiêu chuẩn từ QA/Kế toán/R&D; ban hành", qts:[{id:"QT-03", name:"Biên soạn SOP sản phẩm (phối hợp R&D)", overview:{purpose:"Tạo SOP sản phẩm / recipe chart chuẩn để cửa hàng train & vận hành đúng khi có món mới", trigger:"", input:"", output:"", resultTo:"", relatedDept:"R&D/BD (làm món), Training (biên soạn tài liệu)", frequency:"Phát sinh (món mới)", sla:""}, tools:["Bếp", "NVL", "Ghi chép", "ảnh", "quay", "Word", "Docs + Canva Pro", "⚠️ Kênh xác nhận chưa rõ (DM-05", "⚠️ Kênh gửi chưa rõ (DM-03"]}]},
+      {code:"NV5", name:"Quản lý & vận hành TreeAMS", desc:"Upload tài liệu, setup khóa học & bài test, tạo account, gán người học, checklist/audit, theo dõi", qts:[{id:"QT-02", name:"Setup & tổ chức khóa học trên TreeAMS", overview:{purpose:"Số hóa tài liệu; tổ chức khóa học online; theo dõi tiến độ; quản lý checklist các phòng ban", trigger:"", input:"", output:"", resultTo:"", relatedDept:"", frequency:"", sla:""}, tools:[]}]},
+      {code:"NV6", name:"Đào tạo Orientation", desc:"Lớp offline cho nhân sự mới toàn hệ thống (lịch sử, giá trị cốt lõi, nội quy)", qts:[]},
+      {code:"NV7", name:"Follow sau đào tạo (Training audit)", desc:"Đi audit tại cửa hàng theo checklist; tổng hợp & đề xuất cải thiện", qts:[]},
+      {code:"NV8", name:"Tổ chức lớp theo yêu cầu phòng ban khác", desc:"OPS/Marketing/HR yêu cầu → Training tổ chức (logistics, điểm danh); phòng ban giảng nội dung", qts:[]},
+    ]
+  },
+  hr: {
+    coordIntro: "",
+    coordination: [
+      {dept:"Tất cả phòng ban / NH", work:"Tuyển dụng, lương, chính sách phúc lợi, kỷ luật, khen thưởng, đào tạo", exchange:"Nhận: đề xuất tuyển dụng, thống kê phụ cấp / Giao: thông báo chính sách, bảng lương, quyết định", output:"1Office memo, bảng lương Excel", channel:"Email / 1Office", freq:"Hàng ngày + Phát sinh"},
+      {dept:"Kế toán (Finance)", work:"Chi lương, BHXH, phúc lợi, chi phí hành chính", exchange:"Nhận: xác nhận phụ cấp; / Giao: bảng lương tổng hợp", output:"Bảng lương Excel", channel:"Excel / Email", freq:"Hàng tháng"},
+      {dept:"Vận hành (OPS)", work:"COL (Cost of Labor), định biên nhà hàng, điều chuyển nhân sự", exchange:"Giao: dữ liệu giờ công, ngày công; Nhận: kế hoạch nhân sự NH", output:"File Excel COL", channel:"Excel / Email", freq:"Hàng tuần + Tháng"},
+      {dept:"IT", work:"Hệ thống 1Office, mail, bảo mật dữ liệu nhân sự", exchange:"Nhận: cấp tài khoản, setup quy trình; Giao: yêu cầu thay đổi HT", output:"Ticket / Email", channel:"Email / Direct", freq:"Phát sinh"},
+      {dept:"Đào tạo", work:"Đánh giá thử việc, lộ trình thăng tiến, retraining, ngân sách", exchange:"Nhận: kết quả đánh giá thử việc (từ TA); Giao: phiếu đánh giá, dữ liệu TreeAMs", output:"Phiếu đánh giá", channel:"Email / 1Office", freq:"Hàng quý + Phát sinh"},
+      {dept:"MKT", work:"Employer Branding; tuyển dụng MKT; phụ cấp chụp hình", exchange:"Nhận: thống kê số buổi chụp, tổng tiền phụ cấp; Giao: xác nhận tính lương", output:"File 1Office → Excel", channel:"1Office", freq:"Cuối tháng"},
+      {dept:"Nhà hàng (All NH)", work:"Onboarding, đồng phục, chấm công, nghỉ việc", exchange:"Nhận: đơn nghỉ việc, kết quả bàn giao; Giao: thông báo nhân sự, phiếu đồng phục", output:"1Office + Giấy", channel:"1Office + Direct", freq:"Hàng ngày"},
+      {dept:"Thu mua / Admin", work:"Đồng phục, thiết bị VP", exchange:"Nhận: hàng đồng phục để cấp phát; Giao: phiếu cấp/trả", output:"Excel / Giấy", channel:"Direct", freq:"Phát sinh"},
+      {dept:"Tất cả Quản lý (AM/QM)", work:"Chấm công, ca làm việc, đơn nghỉ phép, đơn làm thêm", exchange:"Nhận: duyệt đơn từ trên 1Office; Giao: báo cáo tuân thủ chấm công", output:"1Office", channel:"1Office", freq:"Hàng ngày"},
+      {dept:"QA/QC, R&D, CK", work:"Tuyển nhân sự chuyên môn, điều chuyển CK ↔ NH", exchange:"Nhận: yêu cầu tuyển / Giao: quyết định", output:"Quyết định", channel:"Một chiều", freq:"Phát sinh"},
+      {dept:"Franchising", work:"Nhân sự nhượng quyền (nếu có)", exchange:"⚠️ Chưa rõ phạm vi", output:"—", channel:"—", freq:"⚠️ DM-05"},
+    ],
+    nv: [
+      {code:"NV1", name:"Talent Acquisition", desc:"Đề xuất tuyển → sourcing → phỏng vấn → onboarding → đánh giá thử việc", qts:[{id:"QT-01", name:"Đề xuất Tuyển dụng", overview:{purpose:"HOD đề xuất nhu cầu nhân sự → HR kiểm tra định biên → lên kế hoạch sourcing", trigger:"", input:"", output:"", resultTo:"TA Team nhận để tiến hành QT-02", relatedDept:"HOD các phòng + TA Team + HoHR", frequency:"Phát sinh (rất thường xuyên — ~500 lượt T1–T5/2026)", sla:""}, tools:["1Office (Custom Flow do IT setup", "Manual", "1Office", "Excel", "ghi chú"]}, {id:"QT-04", name:"Onboarding & Nhận việc", overview:{purpose:"Đảm bảo ứng viên trúng tuyển hoàn tất hồ sơ và được tạo tài khoản/hồ sơ NS đầy đủ trên 1Office trước ngày bắt đầu", trigger:"", input:"", output:"", resultTo:"C&B (tạo hồ sơ 1Office, gán tài khoản chấm công); IT (cấp mail); Admin (đồng phục)", relatedDept:"TA · C&B · IT · Admin", frequency:"Hàng ngày (do tuyển thay thế liên tục ~100+ người/tháng)", sla:""}, tools:["Google Form", "GForm → Excel → 1Office", "IT Ticket", "Excel + Giấy", "1Office + Mitapro"]}, {id:"QT-05", name:"Đánh giá Thử việc & Ký HĐLĐ", overview:{purpose:"Đánh giá kết quả thử việc → quyết định ký HĐLĐ → kích hoạt tham gia BHXH", trigger:"", input:"", output:"", resultTo:"C&B (ký HĐLĐ + đăng ký BHXH)", relatedDept:"TA · Quản lý trực tiếp · C&B · BGĐ (ký HĐLĐ)", frequency:"Liên tục (do tuyển nhiều, đánh giá rolling)", sla:""}, tools:["1Office", "Email", "Giấy", "Word + Email", "Giấy cứng", "1Office + Scan", "EFY"]}]},
+      {code:"NV2", name:"Quản lý đồng phục", desc:"Cấp phát khi nhận việc (cọc 300k), thu hồi khi nghỉ", qts:[]},
+      {code:"NV3", name:"Chấm công", desc:"Gán ca, xử lý ngoại lệ, làm thêm, xuất dữ liệu → tính lương", qts:[{id:"QT-08", name:"Gán ca & Duyệt ca Tuần", overview:{purpose:"Lập lịch ca cho toàn bộ NV nhà hàng trong tuần; AM duyệt chốt để hệ thống tính công", trigger:"", input:"", output:"", resultTo:"", relatedDept:"", frequency:"", sla:""}, tools:["1Office"]}, {id:"QT-09", name:"Xử lý Quên Chấm Công & Đơn Vắng mặt", overview:{purpose:"", trigger:"", input:"", output:"", resultTo:"", relatedDept:"", frequency:"", sla:""}, tools:["1Office"]}, {id:"QT-11", name:"Xuất Dữ liệu Chấm công → Tính Lương", overview:{purpose:"", trigger:"", input:"", output:"", resultTo:"", relatedDept:"", frequency:"", sla:""}, tools:["1Office", "1Office → Excel", "Excel"]}]},
+      {code:"NV4", name:"Tính lương & Phúc lợi", desc:"Tính lương full/part, phụ cấp đặc thù, phạt trừ, thưởng, lương thuế", qts:[{id:"QT-12", name:"Tính lương hàng tháng", overview:{purpose:"", trigger:"", input:"", output:"", resultTo:"", relatedDept:"", frequency:"", sla:""}, tools:["OO → Excel", "Excel", "Email", "giấy", "Hệ thống kế toán"]}]},
+      {code:"NV5", name:"BHXH", desc:"Đăng ký mới, điều chỉnh mức đóng, báo giảm khi nghỉ việc", qts:[]},
+      {code:"NV6", name:"Nghỉ việc", desc:"Duyệt đơn, bàn giao, thanh toán cuối, hành chính", qts:[]},
+      {code:"NV7", name:"Kỷ luật", desc:"Lập biên bản, quyết định, lưu hồ sơ cá nhân", qts:[]},
+      {code:"NV8", name:"Khen thưởng & Thăng tiến", desc:"Đề xuất duyệt, ra quyết định, cập nhật hồ sơ 1Office", qts:[]},
+      {code:"NV9", name:"Đánh giá & Điều chuyển", desc:"Đánh giá định kỳ, điều chuyển nội bộ, retraining", qts:[]},
+      {code:"NV10", name:"Hành chính & Chiến lược", desc:"Orgchart, chính sách, mail, phân quyền, lưu trữ dữ liệu, HRMS", qts:[]},
+    ]
+  },
+  ketoan: {
+    coordIntro: "",
+    coordination: [
+      {dept:"Tất cả phòng ban", work:"Nhận & thanh toán chứng từ", exchange:"Nhận: bộ chứng từ TT (giấy)", output:"FAST (hạch toán)", channel:"", freq:"Hàng ngày"},
+      {dept:"Tất cả phòng ban", work:"Lập kế hoạch dự chi tháng", exchange:"Nhận: file Excel dự chi từng phòng", output:"Bảng cân đối dự chi → GDTC", channel:"", freq:"Hàng tháng"},
+      {dept:"Nhà hàng", work:"Nộp chứng từ bán hàng", exchange:"Nhận: bill bán hàng (giấy), phiếu giao hàng NCC, phiếu có giảm giá (kèm voucher/ký tên/bill cà thẻ)", output:"FAST (hạch toán)", channel:"", freq:"2 lần/tuần"},
+      {dept:"Bếp trung tâm (CK)", work:"Nộp chứng từ; BC P&L CK", exchange:"Nhận: phiếu giao NCC + phiếu xuất cho NH/NQ. Giao: BC P&L CK", output:"FAST (import) · P&L CK tháng", channel:"", freq:"2 lần/tuần (chứng từ) · Tháng (P&L)"},
+      {dept:"PD / R&D", work:"Công thức định mức món", exchange:"Nhận: file Excel công thức món (gram, NVL từng size)", output:"Cài định mức trên FAST/F2", channel:"", freq:"Phát sinh (khi ra món mới / cập nhật)"},
+      {dept:"MKT", work:"Cài đặt menu & CTKM", exchange:"Nhận: memo MKT (tạo trên 1Office, gửi link sau duyệt)", output:"F2 (CTKM, món ăn)", channel:"", freq:"Phát sinh"},
+      {dept:"NH / CK", work:"Kiểm kê NVL", exchange:"KT đến trực tiếp kiểm kê số tồn thực tế", output:"BBKK giấy + file Excel", channel:"", freq:"Hàng tháng (cuối tháng) + tuần (mặt hàng trọng yếu)"},
+      {dept:"NH / CK", work:"Kiểm kê CCDC/TS", exchange:"KTCCDC đến trực tiếp kiểm kê", output:"BBKK giấy", channel:"", freq:"1 quý/lần"},
+      {dept:"OPS", work:"BC tuần (P&L forecast, MenuMix); COL", exchange:"Nhận: file Excel COL từ OPS. Giao: BC P&L tuần & MenuMix", output:"P&L forecast tuần → OPS, HOO", channel:"", freq:"Hàng tuần (T7)"},
+      {dept:"BGĐ / OPS", work:"Doanh thu / tình hình nộp tiền", exchange:"Giao: BC DT; import file lên 1Office; theo dõi nộp tiền qua IB", output:"1Office / Email", channel:"", freq:""},
+      {dept:"BGĐ / CK / HR / OPS", work:"Báo cáo tháng", exchange:"Giao: P&L tháng và BC chi tiết", output:"Email", channel:"", freq:""},
+      {dept:"HR", work:"Tính thưởng NH; ghi nhận lương", exchange:"Nhận: bảng lương tổng hợp (SUM từng bộ phận). Giao: chỉ số tài chính KPI thưởng", output:"FAST (hạch toán lương)", channel:"", freq:"Hàng tháng"},
+      {dept:"Thu mua", work:"Giá mua NVL/CCDC; tạo mã NVL", exchange:"Nhận: bảng báo giá NVL + phiếu yêu cầu tạo mã (bản cứng ký duyệt)", output:"FAST/F2 (mã NVL)", channel:"", freq:"Hàng tháng (giá) · Phát sinh (mã)"},
+      {dept:"Franchising / Nhượng quyền", work:"Công nợ NQ (BTT xuất NQ)", exchange:"Nhận: chứng từ giao hàng NQ. Giao: bảng CN 2 kỳ/tháng + ĐNTT", output:"FAST · Excel", channel:"", freq:"2 kỳ/tháng"},
+      {dept:"Đối tác mall (Parkson, Lotte, Estella...)", work:"BC doanh thu theo hợp đồng", exchange:"Giao: BC DT theo template riêng từng đối tác + bản cứng ký đóng dấu", output:"Email + bản cứng", channel:"", freq:""},
+      {dept:"Đối tác nhượng quyền Machida", work:"BC doanh thu tháng", exchange:"Giao: BC DT theo format Machida", output:"Email + bản cứng", channel:"", freq:""},
+      {dept:"Dự án & Bảo trì", work:"Tạm ứng bảo trì phát sinh", exchange:"Nhận: ĐNTƯ qua 1Office", output:"1Office", channel:"", freq:""},
+    ],
+    nv: [
+      {code:"NV1", name:"Báo cáo tài chính & quản trị", desc:"P&L tuần (forecast) + P&L tháng (thực tế) + MenuMix phục vụ BGĐ ra quyết định", qts:[{id:"QT-01", name:"Lập Báo cáo P&L Tuần (Forecast)", overview:{purpose:"Cung cấp P&L dự báo tuần cho BGĐ/OPS/HOO theo dõi hiệu quả KD trước khi số thực tế cuối tháng có; phát hiện sớm lệch DT/COS/COL", trigger:"", input:"Finance model đầu năm (Mr. Vĩ) · COS% thực tế từ F2Tech · COL từ OPS (Excel/WhatsApp) · CTKM từ F2", output:"", resultTo:"", relatedDept:"KTT · OPS (cung cấp COL) · F2Tech (nguồn COS)", frequency:"Hàng tuần (T6 xử lý · T7 gửi)", sla:""}, tools:["Excel + WhatsApp", "F2", "Excel", "Email"]}, {id:"QT-02", name:"Lập Báo cáo MenuMix Tuần", overview:{purpose:"Phân tích hiệu quả từng món ăn theo SL bán, DT, COS → hỗ trợ menu engineering (giữ/bỏ/điều chỉnh giá)", trigger:"", input:"", output:"", resultTo:"", relatedDept:"", frequency:"Hàng tuần (T6 làm, T7 gửi)", sla:""}, tools:["F2", "Excel", "Email", "Ai quản lý", "KTT"]}]},
+      {code:"NV2", name:"Giá thành & tồn kho NH", desc:"Theo dõi NXT NVL, kiểm kê, tính giá thành, giải trình chênh lệch", qts:[{id:"QT-05", name:"Theo dõi Nhập – Xuất – Tồn NVL Nhà hàng", overview:{purpose:"Ghi nhận đầy đủ biến động NVL tại NH (nhập/xuất/tồn); cung cấp số liệu tính giá vốn và P&L", trigger:"", input:"", output:"", resultTo:"", relatedDept:"KTGT · NH (Bếp/Bar) · KTCN (đối chiếu phiếu GH NCC)", frequency:"Hàng ngày (đổ data) · Cuối tháng (KK + chốt số)", sla:""}, tools:["F2", "F2 → Excel", "FAST + Excel", "Bản KK giấy", "Excel + FAST", "FAST", "Excel + Zalo"]}, {id:"QT-06", name:"Kiểm kê Tồn kho Định kỳ (Nhà hàng)", overview:{purpose:"Xác định số tồn NVL thực tế tại NH → làm baseline đầu tháng sau + cơ sở tính chênh lệch xuất sử dụng", trigger:"", input:"", output:"", resultTo:"", relatedDept:"KTGT (kiểm kê) · NH (xác nhận)", frequency:"1 lần/tuần (trọng yếu) + 1 lần/tháng (toàn bộ)", sla:""}, tools:["Checklist giấy", "file", "Email", "Zalo", "File Excel + FAST"]}, {id:"QT-08", name:"Tính Giá Thành Cuối Tháng (Nhà hàng)", overview:{purpose:"Xác định giá vốn từng món ăn trong tháng → cập nhật vào HĐ bán hàng → cấu thành P&L và COS%", trigger:"", input:"", output:"", resultTo:"", relatedDept:"", frequency:"Hàng tháng (cuối tháng)", sla:""}, tools:["FAST", "FAST + Excel"]}, {id:"QT-09", name:"Giải trình Thừa/Thiếu NVL & Yêu cầu Bồi thường", overview:{purpose:"Xác định nguyên nhân chênh lệch NVL (thừa/thiếu) sau tính giá thành → yêu cầu bồi thường nếu giải trình không hợp lý", trigger:"", input:"", output:"", resultTo:"", relatedDept:"KTGT · Quản lý NH (QM) · Bếp trưởng · Bar trưởng · HR (nếu bồi thường qua lương)", frequency:"Cuối tháng", sla:""}, tools:["FAST + Excel", "Email", "Zalo", "Excel"]}]},
+      {code:"NV3", name:"Giá thành & tồn kho BTT", desc:"Như NV2 nhưng scope Bếp trung tâm; thêm CN nhượng quyền", qts:[{id:"QT-12", name:"Theo dõi Công nợ Nhượng quyền (BTT → NQ)", overview:{purpose:"Thu tiền CN từ đơn vị NQ cho hàng BTT xuất bán; đảm bảo TT đúng kỳ", trigger:"", input:"", output:"", resultTo:"", relatedDept:"KTKHO · BTT · Đơn vị NQ · KTTT", frequency:"2 kỳ/tháng (1–15 và 16–cuối); gửi CN ngày 16–17 và đầu tháng sau", sla:""}, tools:["F2", "F2 → Excel", "Excel", "Excel + Email", "Zalo", "IB", "FAST"]}]},
+      {code:"NV4", name:"Quản lý doanh thu", desc:"Đối chiếu DT app, kiểm tra CTKM, Recoin, nộp tiền NH, BC DT đối tác", qts:[{id:"QT-13", name:"Kiểm tra & Ghi nhận Doanh thu", overview:{purpose:"Đảm bảo DT ghi nhận trên F2 khớp với thực tế bán hàng (bao gồm kênh app); phát hiện bất thường; ghi nhận vào FAST", trigger:"", input:"", output:"", resultTo:"", relatedDept:"KTDT × 2 · NH · MKT (CTKM)", frequency:"Hàng ngày (kiểm tra) · Cuối tháng (ghi nhận FAST)", sla:""}, tools:["F2 + App giao hàng", "Portal app", "Excel", "F2 + Memo 1Office", "F2", "F2 → Excel → FAST"]}]},
+      {code:"NV5", name:"Công nợ nhà cung cấp", desc:"Nhận phiếu GH, đối chiếu F2, Vlookup giá, import FAST, đối chiếu CN, lập ĐNTT", qts:[{id:"QT-18", name:"Cập nhật Phiếu nhập NCC vào FAST", overview:{purpose:"Ghi nhận chính xác phiếu nhập NVL/CCDC từ NCC vào FAST với đúng số lượng và giá mua", trigger:"", input:"", output:"", resultTo:"", relatedDept:"KTCN × 2 · NH/CK · Thu mua (cung cấp bảng giá)", frequency:"1 tuần/lần (NH) + 2 lần/tuần (CK)", sla:""}, tools:["F2 + Giấy", "F2 → Excel + Bảng giá", "FAST"]}, {id:"QT-19", name:"Đối chiếu Công nợ NCC & Lập ĐNTT", overview:{purpose:"", trigger:"", input:"", output:"", resultTo:"", relatedDept:"", frequency:"", sla:""}, tools:["Email", "FAST", "Giấy + FAST", "1Office + Excel + IB"]}]},
+      {code:"NV6", name:"Tài sản & CCDC", desc:"Kiểm kê định kỳ, theo dõi NXT, giải trình, phân bổ/khấu hao", qts:[]},
+      {code:"NV7", name:"Thanh toán & dòng tiền", desc:"Lập kế hoạch chi, lập lệnh IB, hạch toán giao dịch, tạm ứng, khoản vay, giải ngân", qts:[{id:"QT-23", name:"Lập Kế hoạch Dòng tiền & Dự chi", overview:{purpose:"Đảm bảo dòng tiền đủ để chi các khoản phát sinh; phân bổ nguồn chi hợp lý theo tuần", trigger:"", input:"", output:"", resultTo:"", relatedDept:"KTTH · Tất cả phòng ban · KTT · Mr. Vĩ (GDTC) · KTTT", frequency:"Hàng tháng", sla:""}, tools:["Email", "Zalo", "Excel", "Excel + Email"]}, {id:"QT-24", name:"Lập Lệnh Thanh toán Ngân hàng", overview:{purpose:"Thực hiện TT đúng hạn cho NCC và các ĐNTT khác; đảm bảo dòng tiền an toàn", trigger:"", input:"", output:"", resultTo:"", relatedDept:"KTTT × 2 · KTT · Ms. Thư (BOD)", frequency:"Hàng ngày", sla:""}, tools:["1Office (kiểm tra trạng thái) + Giấy", "Excel", "IB", "IB + Excel", "IB mobile", "IB → Excel → FAST"]}]},
+      {code:"NV8", name:"Cài đặt danh mục & CTKM", desc:"Tạo mã, cài món mới, giá bán, CTKM trên FAST và F2", qts:[{id:"QT-29", name:"Cài đặt Món ăn mới & Giá bán", overview:{purpose:"", trigger:"", input:"", output:"", resultTo:"", relatedDept:"", frequency:"", sla:""}, tools:["1Office", "FAST", "F2"]}]},
+      {code:"NV9", name:"Duyệt ĐNTT", desc:"KTT duyệt toàn bộ ĐNTT trước khi chi (1Office + ký giấy)", qts:[]},
+      {code:"NV10", name:"Kiểm soát & Hỗ trợ KT viên", desc:"KTTH (Leader) theo dõi tiến độ công việc toàn nhóm, kiểm tra chất lượng hạch toán, hỗ trợ nghiệp vụ khi phát sinh, escalate lên KTT khi bị block", qts:[{id:"QT-33", name:"Kiểm soát Tiến độ & Hỗ trợ Kế toán viên", overview:{purpose:"", trigger:"", input:"", output:"", resultTo:"", relatedDept:"", frequency:"", sla:""}, tools:[]}]},
+      {code:"NV11", name:"Kế toán Thuế", desc:"Kê khai VAT/TNDN/TNCN; lập sổ sách; làm việc cơ quan thuế", qts:[{id:"QT-01", name:"Lập Báo cáo P&L Tuần (Forecast)", overview:{purpose:"Cung cấp P&L dự báo tuần cho BGĐ/OPS/HOO theo dõi hiệu quả KD trước khi số thực tế cuối tháng có; phát hiện sớm lệch DT/COS/COL", trigger:"", input:"Finance model đầu năm (Mr. Vĩ) · COS% thực tế từ F2Tech · COL từ OPS (Excel/WhatsApp) · CTKM từ F2", output:"", resultTo:"", relatedDept:"KTT · OPS (cung cấp COL) · F2Tech (nguồn COS)", frequency:"Hàng tuần (T6 xử lý · T7 gửi)", sla:""}, tools:["Excel + WhatsApp", "F2", "Excel", "Email"]}, {id:"QT-02", name:"Lập Báo cáo MenuMix Tuần", overview:{purpose:"Phân tích hiệu quả từng món ăn theo SL bán, DT, COS → hỗ trợ menu engineering (giữ/bỏ/điều chỉnh giá)", trigger:"", input:"", output:"", resultTo:"", relatedDept:"", frequency:"Hàng tuần (T6 làm, T7 gửi)", sla:""}, tools:["F2", "Excel", "Email", "Ai quản lý", "KTT"]}, {id:"QT-05", name:"Theo dõi Nhập – Xuất – Tồn NVL Nhà hàng", overview:{purpose:"Ghi nhận đầy đủ biến động NVL tại NH (nhập/xuất/tồn); cung cấp số liệu tính giá vốn và P&L", trigger:"", input:"", output:"", resultTo:"", relatedDept:"KTGT · NH (Bếp/Bar) · KTCN (đối chiếu phiếu GH NCC)", frequency:"Hàng ngày (đổ data) · Cuối tháng (KK + chốt số)", sla:""}, tools:["F2", "F2 → Excel", "FAST + Excel", "Bản KK giấy", "Excel + FAST", "FAST", "Excel + Zalo"]}, {id:"QT-06", name:"Kiểm kê Tồn kho Định kỳ (Nhà hàng)", overview:{purpose:"Xác định số tồn NVL thực tế tại NH → làm baseline đầu tháng sau + cơ sở tính chênh lệch xuất sử dụng", trigger:"", input:"", output:"", resultTo:"", relatedDept:"KTGT (kiểm kê) · NH (xác nhận)", frequency:"1 lần/tuần (trọng yếu) + 1 lần/tháng (toàn bộ)", sla:""}, tools:["Checklist giấy", "file", "Email", "Zalo", "File Excel + FAST"]}, {id:"QT-08", name:"Tính Giá Thành Cuối Tháng (Nhà hàng)", overview:{purpose:"Xác định giá vốn từng món ăn trong tháng → cập nhật vào HĐ bán hàng → cấu thành P&L và COS%", trigger:"", input:"", output:"", resultTo:"", relatedDept:"", frequency:"Hàng tháng (cuối tháng)", sla:""}, tools:["FAST", "FAST + Excel"]}, {id:"QT-09", name:"Giải trình Thừa/Thiếu NVL & Yêu cầu Bồi thường", overview:{purpose:"Xác định nguyên nhân chênh lệch NVL (thừa/thiếu) sau tính giá thành → yêu cầu bồi thường nếu giải trình không hợp lý", trigger:"", input:"", output:"", resultTo:"", relatedDept:"KTGT · Quản lý NH (QM) · Bếp trưởng · Bar trưởng · HR (nếu bồi thường qua lương)", frequency:"Cuối tháng", sla:""}, tools:["FAST + Excel", "Email", "Zalo", "Excel"]}, {id:"QT-12", name:"Theo dõi Công nợ Nhượng quyền (BTT → NQ)", overview:{purpose:"Thu tiền CN từ đơn vị NQ cho hàng BTT xuất bán; đảm bảo TT đúng kỳ", trigger:"", input:"", output:"", resultTo:"", relatedDept:"KTKHO · BTT · Đơn vị NQ · KTTT", frequency:"2 kỳ/tháng (1–15 và 16–cuối); gửi CN ngày 16–17 và đầu tháng sau", sla:""}, tools:["F2", "F2 → Excel", "Excel", "Excel + Email", "Zalo", "IB", "FAST"]}, {id:"QT-13", name:"Kiểm tra & Ghi nhận Doanh thu", overview:{purpose:"Đảm bảo DT ghi nhận trên F2 khớp với thực tế bán hàng (bao gồm kênh app); phát hiện bất thường; ghi nhận vào FAST", trigger:"", input:"", output:"", resultTo:"", relatedDept:"KTDT × 2 · NH · MKT (CTKM)", frequency:"Hàng ngày (kiểm tra) · Cuối tháng (ghi nhận FAST)", sla:""}, tools:["F2 + App giao hàng", "Portal app", "Excel", "F2 + Memo 1Office", "F2", "F2 → Excel → FAST"]}, {id:"QT-18", name:"Cập nhật Phiếu nhập NCC vào FAST", overview:{purpose:"Ghi nhận chính xác phiếu nhập NVL/CCDC từ NCC vào FAST với đúng số lượng và giá mua", trigger:"", input:"", output:"", resultTo:"", relatedDept:"KTCN × 2 · NH/CK · Thu mua (cung cấp bảng giá)", frequency:"1 tuần/lần (NH) + 2 lần/tuần (CK)", sla:""}, tools:["F2 + Giấy", "F2 → Excel + Bảng giá", "FAST"]}, {id:"QT-19", name:"Đối chiếu Công nợ NCC & Lập ĐNTT", overview:{purpose:"", trigger:"", input:"", output:"", resultTo:"", relatedDept:"", frequency:"", sla:""}, tools:["Email", "FAST", "Giấy + FAST", "1Office + Excel + IB"]}, {id:"QT-23", name:"Lập Kế hoạch Dòng tiền & Dự chi", overview:{purpose:"Đảm bảo dòng tiền đủ để chi các khoản phát sinh; phân bổ nguồn chi hợp lý theo tuần", trigger:"", input:"", output:"", resultTo:"", relatedDept:"KTTH · Tất cả phòng ban · KTT · Mr. Vĩ (GDTC) · KTTT", frequency:"Hàng tháng", sla:""}, tools:["Email", "Zalo", "Excel", "Excel + Email"]}, {id:"QT-24", name:"Lập Lệnh Thanh toán Ngân hàng", overview:{purpose:"Thực hiện TT đúng hạn cho NCC và các ĐNTT khác; đảm bảo dòng tiền an toàn", trigger:"", input:"", output:"", resultTo:"", relatedDept:"KTTT × 2 · KTT · Ms. Thư (BOD)", frequency:"Hàng ngày", sla:""}, tools:["1Office (kiểm tra trạng thái) + Giấy", "Excel", "IB", "IB + Excel", "IB mobile", "IB → Excel → FAST"]}, {id:"QT-29", name:"Cài đặt Món ăn mới & Giá bán", overview:{purpose:"", trigger:"", input:"", output:"", resultTo:"", relatedDept:"", frequency:"", sla:""}, tools:["1Office", "FAST", "F2"]}, {id:"QT-33", name:"Kiểm soát Tiến độ & Hỗ trợ Kế toán viên", overview:{purpose:"", trigger:"", input:"", output:"", resultTo:"", relatedDept:"", frequency:"", sla:""}, tools:[]}, {id:"QT-34", name:"Kế toán Thuế — Đang Thuê Ngoài", overview:{purpose:"", trigger:"", input:"", output:"", resultTo:"", relatedDept:"", frequency:"", sla:""}, tools:[]}]},
+    ]
+  },
+  qa: {
+    coordIntro: "",
+    coordination: [
+      {dept:"Vận hành (OPS)", work:"Kiểm tra nhà hàng, triển khai quy trình/hướng dẫn", exchange:"Nhận: thông tin nhà hàng · Giao: kết quả kiểm tra & quy trình/HD", output:"Audit report, SOP", channel:"Trực tiếp", freq:"Thường xuyên"},
+      {dept:"Sản xuất (CK)", work:"Kiểm tra, triển khai quy trình/hướng dẫn tại CK", exchange:"Nhận: thông tin mặt hàng sản xuất · Giao: kết quả kiểm tra & QT/HD", output:"QC report, SOP", channel:"Trực tiếp", freq:"Thường xuyên"},
+      {dept:"Thu mua", work:"KS chất lượng hàng hóa NVL của NCC đầu vào", exchange:"Nhận: kết quả kiểm tra · Giao: yêu cầu gửi NCC cải thiện", output:"CAPA/Yêu cầu cải thiện NCC", channel:"Trực tiếp", freq:"Thường xuyên"},
+      {dept:"RD – PD", work:"KS chất lượng sản phẩm tại NH & CK", exchange:"Nhận: kế hoạch phát triển SP mới · Giao: tiêu chuẩn & kế hoạch kiểm soát", output:"SPEC, control plan", channel:"Trực tiếp", freq:"Thường xuyên"},
+      {dept:"Vận chuyển", work:"KS chất lượng SP trong quá trình vận chuyển CK → NH", exchange:"Nhận: thông tin kênh vận chuyển đang làm việc với SOL để lập kế hoạch KS định kỳ", output:"Kế hoạch KS vận chuyển", channel:"Trực tiếp", freq:"Hàng tháng"},
+      {dept:"CS (Chăm sóc KH)", work:"Kiểm tra & đánh giá phản hồi khách hàng liên quan ATTP", exchange:"Nhận: thông tin sự vụ từ khách · Giao: kết quả kiểm tra & đánh giá", output:"Incident report", channel:"Trực tiếp", freq:"Khi có sự vụ"},
+      {dept:"Đào tạo", work:"Thực hiện đào tạo quy trình/hướng dẫn cho OPS và CK", exchange:"Nhận: kế hoạch đào tạo · Giao: nội dung đào tạo", output:"Training material", channel:"Trực tiếp", freq:"Khi có kế hoạch"},
+      {dept:"Kế toán", work:"", exchange:"", output:"", channel:"", freq:""},
+      {dept:"MKT", work:"", exchange:"", output:"", channel:"", freq:""},
+      {dept:"HR", work:"", exchange:"", output:"", channel:"", freq:""},
+      {dept:"Franchising", work:"", exchange:"", output:"", channel:"", freq:""},
+      {dept:"Dự án & Bảo trì", work:"", exchange:"", output:"", channel:"", freq:""},
+    ],
+    nv: [
+      {code:"NV1", name:"Audit nhà hàng", desc:"KS chất lượng dịch vụ & ATVSTP tại nhà hàng", qts:[{id:"QT-01", name:"Kiểm tra nhà hàng theo checklist S-C-P-Q-D", overview:{purpose:"Đảm bảo NH tuân thủ tiêu chuẩn chất lượng dịch vụ & ATVSTP; phát hiện điểm không phù hợp, đề xuất khắc phục", trigger:"Theo lịch kiểm tra định kỳ / kiểm tra đột xuất khi có dấu hiệu", input:"Checklist S-C-P-Q-D (T21); bộ tiêu chuẩn/SOP/SSOP liên quan (T01–T19); lịch kiểm tra (T20)", output:"Hoàn tất chấm điểm + biên bản kiểm tra + yêu cầu khắc phục gửi NH", resultTo:"Nhà hàng (khắc phục) · OPS (phối hợp) · QA/QC Manager (tổng hợp)", relatedDept:"OPS, Nhà hàng, (CS khi có sự vụ)", frequency:"Hàng ngày — Executive đi kiểm tra các NH", sla:"⚠️ chưa rõ"}, tools:["Checklist T21 (giấy", "Excel", "Checklist", "điện thoại", "Biên bản (giấy", "Email"]}]},
+      {code:"NV2", name:"Xin cấp giấy phép đủ điều kiện ATTP", desc:"Chuẩn bị hồ sơ pháp lý & tiếp Đoàn thẩm định tại NH/CK", qts:[]},
+      {code:"NV3", name:"Xin cấp giấy phép môi trường", desc:"Chuẩn bị hồ sơ pháp lý & tiếp Đoàn kiểm tra", qts:[]},
+      {code:"NV4", name:"Đăng ký bán rượu tiêu dùng tại chỗ", desc:"Thực hiện & tổng hợp hồ sơ đăng ký, nộp hồ sơ", qts:[]},
+      {code:"NV5", name:"Tiếp Đoàn Thanh tra/Kiểm tra/Liên ngành ATTP", desc:"Chuẩn bị hồ sơ pháp lý & tiếp các Đoàn tại NH/CK", qts:[{id:"QT-06", name:"Chuẩn bị & tiếp Đoàn thẩm định / thanh kiểm tra ATTP", overview:{purpose:"Hướng dẫn công tác chuẩn bị & tiếp Đoàn thẩm định, thanh kiểm tra, liên ngành ATTP/Môi trường", trigger:"Khi nhận thông báo lịch kiểm tra từ cơ quan chức năng, hoặc kiểm tra đột xuất", input:"Thông báo kiểm tra, hồ sơ pháp lý, giấy phép ATTP/MT, checklist hồ sơ", output:"Hoàn tất tiếp đoàn, nhận biên bản, khắc phục (nếu có)", resultTo:"Biên bản → QA Manager → Support Director", relatedDept:"OPS, CK, Pháp lý", frequency:"Phát sinh", sla:"⚠️"}, tools:["Checklist T14"]}]},
+      {code:"NV6", name:"Tiếp Đoàn kiểm tra Môi trường", desc:"Chuẩn bị hồ sơ pháp lý & tiếp các Đoàn tại NH/CK", qts:[]},
+      {code:"NV7", name:"Đào tạo tập huấn ATTP & tài liệu nội bộ", desc:"Đào tạo NV mới & cập nhật NV cũ về mối nguy ATTP và quy định KS", qts:[]},
+      {code:"NV8", name:"Kiểm soát chất lượng đầu vào tại CK", desc:"Kiểm tra chất lượng NVL dựa vào tiêu chuẩn", qts:[{id:"QT-02", name:"Kiểm soát chất lượng đầu vào tại CK (IQC)", overview:{purpose:"Đảm bảo NVL đầu vào CK đạt tiêu chuẩn kỹ thuật trước khi nhập kho/sản xuất", trigger:"Khi NCC giao NVL đến CK", input:"Lô NVL, chứng từ giao hàng (DO/CoA), PO, SPEC NVL (T39), SOP tiếp nhận (T31)", output:"NVL được chấp nhận nhập kho / trả về NCC nếu không đạt", resultTo:"Kho/Sản xuất CK · Thu mua (nếu trả hàng/yêu cầu cải thiện NCC)", relatedDept:"CK (Sản xuất, Kho), Thu mua, NCC", frequency:"Hàng ngày", sla:"⚠️ chưa rõ"}, tools:["SPEC T39", "nhiệt kế", "thiết bị đo", "Biên bản IQC", "Email"]}]},
+      {code:"NV9", name:"Kiểm soát quy trình sản xuất tại CK", desc:"Kiểm tra tuân thủ theo quy định & tiêu chuẩn từng công đoạn SX", qts:[{id:"QT-03", name:"Kiểm soát quy trình sản xuất tại CK (PQC/OQC)", overview:{purpose:"Giám sát & đảm bảo từng công đoạn sản xuất tại CK tuân thủ quy định/tiêu chuẩn (GMP, SSOP, HACCP)", trigger:"Khi CK bắt đầu ca/lô sản xuất", input:"Kế hoạch sản xuất, SOP công đoạn (T24–T36), SPEC thành phẩm (T38)", output:"Thành phẩm đạt chuẩn, hồ sơ kiểm soát công đoạn hoàn tất", resultTo:"Sản xuất CK · Vận chuyển (giao NH) · QA/QC Manager", relatedDept:"CK (Sản xuất), Vận chuyển, RD/PD", frequency:"Hàng ngày", sla:"⚠️ chưa rõ"}, tools:["SOP T24–T34", "SOP T33", "SOP T30", "T15", "Biểu mẫu"]}]},
+      {code:"NV10", name:"Soạn thảo quy trình/hướng dẫn", desc:"Xây dựng tiêu chuẩn KS, quy trình & hướng dẫn kiểm soát", qts:[{id:"QT-04", name:"Soạn thảo & ban hành tiêu chuẩn / SOP / SPEC", overview:{purpose:"Xây dựng & duy trì hệ thống tài liệu chuẩn (tiêu chuẩn, SOP, SPEC, GMP, SSOP) đảm bảo KS chất lượng & tuân thủ luật ATTP", trigger:"Có nhu cầu mới (sản phẩm mới từ RD/PD, quy định pháp luật thay đổi, phát sinh sự cố, cải tiến quy trình)", input:"Yêu cầu nghiệp vụ, quy định pháp luật, kế hoạch sản phẩm mới (RD/PD), kết quả audit", output:"Tài liệu được phê duyệt, ban hành & đào tạo áp dụng", resultTo:"OPS, CK, Đào tạo, Thu mua (tùy tài liệu)", relatedDept:"RD/PD, Thu mua, OPS, CK, Đào tạo", frequency:"Phát sinh", sla:"⚠️ chưa rõ"}, tools:["Word", "Excel", "Email", "họp", "Thư mục", "Drive"]}]},
+    ]
+  },
+  rd: {
+    coordIntro: "",
+    coordination: [
+      {dept:"Thu mua (SCM)", work:"Liên hệ nguồn hàng mới (món mới/đổi nguồn); follow chất lượng theo SOP + thực tế; xem xét thông báo giá NVL; tìm nguồn backup; đề xuất thay/sửa CCDC & thiết bị", exchange:"", output:"", channel:"2 chiều", freq:"Phát sinh + hàng tháng (rà giá)"},
+      {dept:"Kế toán", work:"Gửi BOM (định lượng + giá đã duyệt); rà soát chênh lệch định mức hàng tháng (cost, SL dùng vs định mức)", exchange:"", output:"", channel:"2 chiều", freq:"Tháng + Phát sinh"},
+      {dept:"Nhân sự (HR)", work:"Đưa JD tuyển; phỏng vấn & test tay nghề; đề xuất luân chuyển/promote", exchange:"", output:"", channel:"2 chiều", freq:"Phát sinh"},
+      {dept:"Dự án", work:"Vẽ/duyệt layout bếp giai đoạn đầu; giám sát xây dựng; giải pháp thiết bị (3 hay 4 tủ mát…)", exchange:"", output:"", channel:"2 chiều", freq:"Khi mở NH"},
+      {dept:"MKT", work:"Calendar năm/KBI/seasonal menu; làm menu mới (chụp hình, đề xuất giá = cost + % brand); quay clip; kênh phản hồi CL", exchange:"", output:"", channel:"2 chiều", freq:"Cuối năm + Phát sinh"},
+      {dept:"CK (Bếp trung tâm)", work:"Quyết định SP làm ở CK; training/chuyển giao công nghệ; đánh giá đầu ra CK; đề xuất CCDC/thiết bị chuyên dụng", exchange:"", output:"", channel:"2 chiều", freq:"Phát sinh"},
+      {dept:"NCC (chào mẫu)", work:"Tìm NCC mới (nguồn, giá, chất lượng); tiếp nhận chào mẫu & test → pass SCM", exchange:"", output:"", channel:"2 chiều", freq:"Phát sinh"},
+      {dept:"OPS", work:"Training & đánh giá tay nghề; giải pháp vận hành (NS/CCDC/NVL); kiểm tra định kỳ (food setting, VSATTP); hỗ trợ vận hành trực tiếp", exchange:"", output:"", channel:"2 chiều", freq:"Mong muốn 2 lần/tuần/NH — thực tế 1 lần/tháng/NH ⚠️ GAP-07"},
+      {dept:"IT", work:"Setup NH mới (camera, máy in bill)", exchange:"", output:"", channel:"1–2 chiều", freq:"Khi mở NH"},
+      {dept:"QA/QC", work:"R&D xây bộ tiêu chuẩn (nguồn hàng, sơ chế/chế biến, nhiệt độ/quy trình bảo quản, thành phẩm, vận chuyển, CCDC/thiết bị); hỗ trợ OPS giải quyết feedback QA", exchange:"", output:"", channel:"2 chiều", freq:"Phát sinh + theo đợt QA"},
+      {dept:"Đào tạo (Training)", work:"Training món mới, re-training; xây/update SOP (R&D cấp nội dung → Training cover); test tay nghề định kỳ (1–5 sao, giữ bậc tencho); quiz QR", exchange:"", output:"", channel:"2 chiều", freq:"Phát sinh + định kỳ"},
+      {dept:"Cung ứng & Kỹ thuật", work:"Mua mới thiết bị bếp (Cung ứng/Thu mua); bảo trì thiết bị (Kỹ thuật)", exchange:"", output:"", channel:"2 chiều", freq:"Phát sinh"},
+      {dept:"Kết hợp đa phòng ban", work:"Ra menu; dự án khai trương NH; OEM (Cung ứng + QA + CK)", exchange:"", output:"", channel:"Đa chiều", freq:"Theo sự kiện"},
+      {dept:"Franchising", work:"⚠️ Chưa rõ phạm vi (SOP cho franchise?)", exchange:"", output:"", channel:"—", freq:"⚠️ DM-11"},
+    ],
+    nv: [
+      {code:"NV1", name:"Phát triển sản phẩm / món mới", desc:"Theo calendar/mùa + trend + kéo khách + clear NVL + review menu; thẩm định Tatsuya", qts:[{id:"QT-01", name:"Phát triển menu mới / Món mới (End-to-End)", overview:{purpose:"Ra menu/món mới đáp ứng seasonal, trend, kéo khách, clear NVL", trigger:"", input:"", output:"", resultTo:"", relatedDept:"MKT, Thu mua, Kế toán, CK, Training, Ops, BOD", frequency:"Calendar: Quý 4 · Trend/clear NVL: phát sinh", sla:""}, tools:["Email", "gặp", "Excel", "giấy", "Nếm thử", "Máy ảnh", "Excel + template", "Hệ thống"]}]},
+      {code:"NV2", name:"Quản lý BOM & Chart + Cost", desc:"Tạo/update BOM & Chart; rà soát chênh lệch định mức hàng tháng", qts:[{id:"QT-02", name:"Tạo & cập nhật BOM và Chart", overview:{purpose:"Chuẩn hóa công thức (BOM) & quy trình chế biến (Chart); quản lý version", trigger:"", input:"", output:"", resultTo:"", relatedDept:"SCM, Kế toán, MKT, Training, BOD", frequency:"Phát sinh theo món", sla:""}, tools:["Excel + template", "Excel", "Word", "Hệ thống", "WhatsApp"]}, {id:"QT-03", name:"Rà soát chênh lệch định mức hàng tháng", overview:{purpose:"Đưa cost về cost tiêu chuẩn (~32%); phát hiện & xử lý chênh lệch định mức", trigger:"", input:"", output:"", resultTo:"", relatedDept:"Kế toán, Ops, Thu mua, NH", frequency:"Hàng tháng", sla:""}, tools:["Excel", "Trực tiếp", "SOP"]}]},
+      {code:"NV3", name:"Đào tạo & Đánh giá tay nghề", desc:"Training món mới/CK, tay nghề, re-train; test nâng/giữ bậc (1–5 sao)", qts:[{id:"QT-06", name:"Test tay nghề định kỳ (Nâng/giữ bậc 1–5 sao)", overview:{purpose:"Đánh giá nâng bậc (1→5 sao) & giữ bậc tencho; đảm bảo định biên tay nghề đủ vận hành bếp", trigger:"", input:"", output:"", resultTo:"", relatedDept:"R&D · AM · Training · HR", frequency:"Định kỳ", sla:""}, tools:[]}]},
+      {code:"NV4", name:"KSCL & Xây tiêu chuẩn", desc:"SOP chế biến/bảo quản/vận chuyển; đánh giá CK; kiểm tra định kỳ NH; hỗ trợ QA", qts:[]},
+      {code:"NV5", name:"Quản lý Nguồn hàng & NCC", desc:"Tìm/đánh giá/backup nguồn hàng; test mẫu NCC; OEM", qts:[]},
+      {code:"NV6", name:"Hỗ trợ Vận hành (OPS)", desc:"Feedback NH, giải pháp vận hành, điều chuyển NS, hỗ trợ trực tiếp", qts:[]},
+      {code:"NV7", name:"Hỗ trợ mở NH mới", desc:"Layout bếp, giám sát, FO, giải pháp thiết bị", qts:[]},
+      {code:"NV8", name:"Phối hợp MKT & Calendar", desc:"Seasonal menu, menu mới, chụp hình, clip, đề xuất giá", qts:[]},
+      {code:"NV9", name:"Phân bổ sản xuất CK/OEM/NH", desc:"Quyết định + solution nơi sản xuất, chuyển giao", qts:[]},
+      {code:"NV10", name:"Chấm điểm shop (TreeAMS)", desc:"Chấm món ăn, vệ sinh…", qts:[]},
+      {code:"NV11", name:"Phân tích số liệu", desc:"Nắm tình hình cost/DT; không dùng báo cáo BOD", qts:[]},
+    ]
+  },
+};
+
+
 const ORG_CHARTS = {
   hr:{
     source:"survey-HR-Final.md · mục 1.3",
@@ -960,6 +1216,16 @@ const ORG_CHARTS = {
     MKT["Phòng Marketing<br/>Mr.Trí"]
 
     GD --> MKT`
+  },
+  mktmoi:{
+    source:"Chưa có dữ liệu sơ đồ tổ chức — bổ sung sau khảo sát",
+    code:`graph TD
+    A["Chưa có dữ liệu sơ đồ tổ chức"]`
+  },
+  duan:{
+    source:"Chưa có dữ liệu sơ đồ tổ chức — bổ sung sau khảo sát",
+    code:`graph TD
+    A["Chưa có dữ liệu sơ đồ tổ chức"]`
   }
 };
 
@@ -1035,12 +1301,46 @@ function openOrgChart(deptKey){
   w.document.close();
 }
 
-/* ============ RENDER ============ */
+/* ============ HELPERS: hợp nhất dữ liệu nghiệp vụ (Survey Level-1 hoặc processes cũ) ============ */
+
+function getDeptItems(key){
+  const s = SURVEY[key];
+  if(s){
+    return s.nv.map(nv => ({
+      id: key + '-' + nv.code,
+      code: nv.code,
+      title: nv.code + ' — ' + nv.name,
+      desc: nv.desc,
+      qts: nv.qts
+    }));
+  }
+  const d = DATA[key];
+  return (d.processes || []).map(p => ({
+    id: p.id,
+    code: '',
+    title: p.name,
+    desc: p.desc,
+    qts: [{
+      id: p.id, name: p.name,
+      overview: { purpose: p.desc || '', trigger:'', input:'', output:'', resultTo:'', relatedDept:'', frequency:'', sla:'' },
+      tools: p.systems || []
+    }]
+  }));
+}
+
+function getDeptCoordination(key){
+  const s = SURVEY[key];
+  if(s) return { intro: s.coordIntro, rows: s.coordination };
+  return null;
+}
+
+/* ============ RENDER: Trang chủ ============ */
 const deptGrid = document.getElementById('deptGrid');
 const deptKeys = Object.keys(DATA);
 
 deptKeys.forEach(key=>{
   const d = DATA[key];
+  const items = getDeptItems(key);
   const card = document.createElement('div');
   card.className = 'dept-card';
   card.dataset.key = key;
@@ -1048,7 +1348,7 @@ deptKeys.forEach(key=>{
     <span class="block">${d.khoi.replace('Khối ','')}</span>
     <span class="icon">${d.icon}</span>
     <div class="name">${d.name}</div>
-    <div class="count">${d.processes.length} nghiệp vụ</div>
+    <div class="count">${items.length} nghiệp vụ</div>
   `;
   card.addEventListener('click', ()=> selectDept(key));
   deptGrid.appendChild(card);
@@ -1064,6 +1364,7 @@ function selectDept(key){
   const list = document.getElementById('processList');
   list.innerHTML = '';
 
+  // Ô 1: Sơ đồ tổ chức
   const orgItem = document.createElement('div');
   orgItem.className = 'process-item org-chart-item';
   orgItem.innerHTML = `
@@ -1074,17 +1375,34 @@ function selectDept(key){
   orgItem.addEventListener('click', ()=> openOrgChart(key));
   list.appendChild(orgItem);
 
-  d.processes.forEach(p=>{
-    const item = document.createElement('div');
-    item.className = 'process-item';
-    item.innerHTML = `
-      <div class="p-name">${p.name}</div>
-      <div class="p-desc">${p.desc}</div>
-      <div class="p-meta">${(p.systems||[]).slice(0,2).map(s=>`<span class="chip">${s}</span>`).join('')}</div>
+  // Ô 2: Phối hợp với phòng ban khác
+  const coord = getDeptCoordination(key);
+  const coordItem = document.createElement('div');
+  coordItem.className = 'process-item coord-item';
+  coordItem.innerHTML = `
+    <div class="p-name">🤝 Phối hợp với phòng ban khác</div>
+    <div class="p-desc">${coord ? `Phối hợp với ${coord.rows.length} phòng ban/đầu mối khác.` : 'Chưa có dữ liệu khảo sát mục 1.4 — cần bổ sung qua workshop riêng.'}</div>
+    <div class="p-meta"><span class="chip">Phối hợp</span></div>
+  `;
+  coordItem.addEventListener('click', ()=> openCoordModal(key));
+  list.appendChild(coordItem);
+
+  // Các ô còn lại: nghiệp vụ cấp cao (Level 1)
+  const items = getDeptItems(key);
+  items.forEach(item=>{
+    const el = document.createElement('div');
+    el.className = 'process-item';
+    const toolChips = [];
+    (item.qts||[]).forEach(qt => (qt.tools||[]).forEach(t=>{ if(toolChips.indexOf(t)===-1) toolChips.push(t); }));
+    el.innerHTML = `
+      <div class="p-name">${item.title}</div>
+      <div class="p-desc">${item.desc || ''}</div>
+      <div class="p-meta">${toolChips.slice(0,2).map(s=>`<span class="chip">${s}</span>`).join('')}</div>
     `;
-    item.addEventListener('click', ()=> openDetail(key, p.id));
-    list.appendChild(item);
+    el.addEventListener('click', ()=> openDetail(key, item.id));
+    list.appendChild(el);
   });
+
   document.getElementById('processPanel').classList.add('show');
   document.getElementById('processPanel').scrollIntoView({behavior:'smooth', block:'nearest'});
 }
@@ -1092,29 +1410,66 @@ function selectDept(key){
 let lastDept = null;
 let currentProcess = null;
 
-/* ============ ADMIN: link "Quy trình chi tiết" do người dùng gán ============ */
+/* ============ Modal: Phối hợp với phòng ban khác ============ */
+function openCoordModal(key){
+  const d = DATA[key];
+  const coord = getDeptCoordination(key);
+  document.getElementById('coordTitle').textContent = '🤝 Phối hợp với phòng ban khác — ' + d.name;
+  const introEl = document.getElementById('coordIntro');
+  const cardsEl = document.getElementById('coordCards');
+  cardsEl.innerHTML = '';
+  if(!coord || !coord.rows || !coord.rows.length){
+    introEl.textContent = 'Chưa có dữ liệu khảo sát mục "1.4 Phối hợp với phòng ban khác" cho phòng ban này — cần bổ sung qua workshop riêng.';
+  } else {
+    introEl.textContent = coord.intro || '';
+    coord.rows.forEach(r=>{
+      const card = document.createElement('div');
+      card.className = 'coord-card';
+      card.innerHTML = `
+        <div class="cc-dept">${r.dept || ''}</div>
+        ${r.work ? `<div class="cc-row"><b>Phối hợp về:</b>${r.work}</div>` : ''}
+        ${r.exchange ? `<div class="cc-row"><b>Nhận/Giao:</b>${r.exchange}</div>` : ''}
+        ${r.output ? `<div class="cc-row"><b>Output:</b>${r.output}</div>` : ''}
+        ${r.channel ? `<div class="cc-row"><b>Tương tác:</b>${r.channel}</div>` : ''}
+        ${r.freq ? `<div class="cc-row"><b>Tần suất:</b>${r.freq}</div>` : ''}
+      `;
+      cardsEl.appendChild(card);
+    });
+  }
+  document.getElementById('coordModalOverlay').classList.add('show');
+}
+function closeCoordModal(){
+  document.getElementById('coordModalOverlay').classList.remove('show');
+}
+
+/* ============ ADMIN: link "Quy trình chi tiết" (tối đa 10 button/nghiệp vụ) ============ */
 const CUSTOM_LINKS_KEY = 'sol_custom_process_links';
 const ADMIN_PASSWORD = '271209';
+const MAX_LINKS_PER_ITEM = 10;
 
 function loadCustomLinks(){
+  let data = {};
   try{
-    return JSON.parse(localStorage.getItem(CUSTOM_LINKS_KEY)) || {};
-  }catch(e){ return {}; }
+    data = JSON.parse(localStorage.getItem(CUSTOM_LINKS_KEY)) || {};
+  }catch(e){ data = {}; }
+  // Migrate dữ liệu cũ (id -> string url) sang dạng mới (id -> [{name,url}])
+  let migrated = false;
+  Object.keys(data).forEach(id=>{
+    if(typeof data[id] === 'string'){
+      data[id] = data[id] ? [{name:'Quy trình chi tiết', url:data[id]}] : [];
+      migrated = true;
+    }
+  });
+  if(migrated) localStorage.setItem(CUSTOM_LINKS_KEY, JSON.stringify(data));
+  return data;
 }
 function saveCustomLinks(links){
   localStorage.setItem(CUSTOM_LINKS_KEY, JSON.stringify(links));
 }
 let customLinks = loadCustomLinks();
 
-/* Đường dẫn tới trang "Quy trình chi tiết" cho từng nghiệp vụ.
-   Thứ tự ưu tiên:
-   1. Link do Admin gán qua trang quản trị (lưu trong localStorage)
-   2. Field detailFile khai báo sẵn trong DATA
-   3. Mặc định: quy-trinh-chi-tiet/<id>.html */
-function getDetailFlowUrl(p){
-  if(customLinks[p.id]) return customLinks[p.id];
-  if(p.detailFile) return p.detailFile;
-  return `quy-trinh-chi-tiet/${p.id}.html`;
+function getProcessButtons(itemId){
+  return (customLinks[itemId] || []).filter(b => b && b.name && b.url).slice(0, MAX_LINKS_PER_ITEM);
 }
 
 /* Nếu link trỏ tới file .bpmn (XML), trình duyệt không đọc trực tiếp được —
@@ -1125,12 +1480,6 @@ function resolveOpenUrl(url, title){
     return `bpmn-viewer.html?src=${encodeURIComponent(url)}&title=${encodeURIComponent(title || '')}`;
   }
   return url;
-}
-
-function openDetailFlow(){
-  if(!currentProcess) return;
-  const rawUrl = getDetailFlowUrl(currentProcess);
-  window.open(resolveOpenUrl(rawUrl, currentProcess.name), '_blank');
 }
 
 /* ---- Password modal ---- */
@@ -1157,6 +1506,11 @@ document.addEventListener('keydown', (e)=>{
   if(e.key === 'Enter') checkPassword();
   if(e.key === 'Escape') closePwModal();
 });
+document.addEventListener('keydown', (e)=>{
+  if(e.key === 'Escape' && document.getElementById('coordModalOverlay').classList.contains('show')){
+    closeCoordModal();
+  }
+});
 
 /* ---- Admin page ---- */
 function showAdminPage(){
@@ -1171,6 +1525,7 @@ function showAdminPage(){
   grid.innerHTML = '';
   deptKeys.forEach(key=>{
     const d = DATA[key];
+    const items = getDeptItems(key);
     const card = document.createElement('div');
     card.className = 'dept-card';
     card.dataset.key = key;
@@ -1178,7 +1533,7 @@ function showAdminPage(){
       <span class="block">${d.khoi.replace('Khối ','')}</span>
       <span class="icon">${d.icon}</span>
       <div class="name">${d.name}</div>
-      <div class="count">${d.processes.length} nghiệp vụ</div>
+      <div class="count">${items.length} nghiệp vụ</div>
     `;
     card.addEventListener('click', ()=> selectAdminDept(key));
     grid.appendChild(card);
@@ -1193,34 +1548,53 @@ function selectAdminDept(key){
 
   const list = document.getElementById('adminProcessList');
   list.innerHTML = '';
-  d.processes.forEach(p=>{
-    const row = document.createElement('div');
-    row.className = 'admin-process-row';
-    const inputId = 'link-' + p.id;
-    const tagId = 'saved-' + p.id;
-    row.innerHTML = `
-      <div class="apr-name">${p.name}</div>
-      <input type="text" id="${inputId}" placeholder="Dán đường link HTML quy trình chi tiết..." value="${(customLinks[p.id]||'').replace(/"/g,'&quot;')}" />
-      <button class="admin-save-btn" onclick="confirmAdminLink('${p.id}')">Xác nhận</button>
-      <span class="admin-saved-tag" id="${tagId}">✓ Đã lưu</span>
+  const items = getDeptItems(key);
+  items.forEach(item=>{
+    const block = document.createElement('div');
+    block.className = 'admin-item-block';
+    const existing = customLinks[item.id] || [];
+    let rowsHtml = '';
+    for(let i = 0; i < MAX_LINKS_PER_ITEM; i++){
+      const row = existing[i] || {name:'', url:''};
+      rowsHtml += `
+        <div class="admin-link-row">
+          <span class="row-idx">${i+1}.</span>
+          <input type="text" class="name-input" id="name-${item.id}-${i}" placeholder="Tên button (vd: Quy trình chi tiết)" value="${(row.name||'').replace(/"/g,'&quot;')}" />
+          <input type="text" class="url-input" id="url-${item.id}-${i}" placeholder="Đường link..." value="${(row.url||'').replace(/"/g,'&quot;')}" />
+        </div>
+      `;
+    }
+    block.innerHTML = `
+      <div class="aib-title">${item.title} <span class="admin-saved-tag" id="saved-${item.id}">✓ Đã lưu</span></div>
+      ${rowsHtml}
+      <button class="admin-save-btn" onclick="confirmAdminLink('${item.id}')">💾 Lưu</button>
     `;
-    list.appendChild(row);
+    list.appendChild(block);
   });
   document.getElementById('adminProcessPanel').classList.add('show');
 }
 
-function confirmAdminLink(procId){
-  const input = document.getElementById('link-' + procId);
-  const val = input.value.trim();
-  if(val){
-    customLinks[procId] = val;
+function confirmAdminLink(itemId){
+  const rows = [];
+  for(let i = 0; i < MAX_LINKS_PER_ITEM; i++){
+    const nameEl = document.getElementById(`name-${itemId}-${i}`);
+    const urlEl = document.getElementById(`url-${itemId}-${i}`);
+    if(!nameEl || !urlEl) continue;
+    const name = nameEl.value.trim();
+    const url = urlEl.value.trim();
+    if(name && url) rows.push({name, url});
+  }
+  if(rows.length){
+    customLinks[itemId] = rows;
   } else {
-    delete customLinks[procId];
+    delete customLinks[itemId];
   }
   saveCustomLinks(customLinks);
-  const tag = document.getElementById('saved-' + procId);
-  tag.classList.add('show');
-  setTimeout(()=> tag.classList.remove('show'), 2000);
+  const tag = document.getElementById('saved-' + itemId);
+  if(tag){
+    tag.classList.add('show');
+    setTimeout(()=> tag.classList.remove('show'), 2000);
+  }
 }
 
 function goBackFromAdmin(){
@@ -1230,69 +1604,89 @@ function goBackFromAdmin(){
   window.scrollTo({top:0, behavior:'smooth'});
 }
 
-function openDetail(deptKey, procId){
+/* ============ Trang chi tiết nghiệp vụ (2 cột) ============ */
+const OVERVIEW_LABELS = [
+  ['purpose', 'Mục đích'],
+  ['trigger', 'Bắt đầu khi nào (trigger)'],
+  ['input', 'Đầu vào (input)'],
+  ['output', 'Kết thúc khi nào (output)'],
+  ['resultTo', 'Kết quả → chuyển ai'],
+  ['relatedDept', 'Phòng ban liên quan'],
+  ['frequency', 'Tần suất'],
+  ['sla', 'Thời gian TB / SLA'],
+];
+
+function openDetail(deptKey, itemId){
   lastDept = deptKey;
   const d = DATA[deptKey];
-  const p = d.processes.find(x=>x.id===procId);
-  if(!p) return;
-  currentProcess = p;
+  const items = getDeptItems(deptKey);
+  const item = items.find(x=>x.id===itemId);
+  if(!item) return;
+  currentProcess = item;
 
   document.getElementById('d2dept').textContent = d.icon + ' ' + d.name + ' · ' + d.khoi;
-  document.getElementById('d2title').textContent = p.name;
-  document.getElementById('d2summary').textContent = p.desc;
+  document.getElementById('d2title').textContent = item.title;
+  document.getElementById('d2summary').textContent = item.desc || '';
 
-  const stepsEl = document.getElementById('d2steps');
-  stepsEl.innerHTML = '';
-  if(p.steps && p.steps.length){
-    p.steps.forEach(s=>{
-      const li = document.createElement('li');
-      li.textContent = s;
-      stepsEl.appendChild(li);
-    });
+  // Cụm 1: Thông tin tổng quát (theo từng quy trình con / QT)
+  const overviewEl = document.getElementById('d2overview');
+  overviewEl.innerHTML = '';
+  const qts = item.qts || [];
+  const hasAnyOverview = qts.some(qt => OVERVIEW_LABELS.some(([k]) => qt.overview && qt.overview[k]));
+  if(!hasAnyOverview){
+    overviewEl.innerHTML = '<div class="missing">Chưa có thông tin tổng quan chi tiết — cần bổ sung qua khảo sát/workshop.</div>';
   } else {
-    stepsEl.innerHTML = '<li class="missing">Chưa có mô tả chi tiết từng bước — cần bổ sung thông tin.</li>';
+    qts.forEach(qt=>{
+      const rows = OVERVIEW_LABELS
+        .map(([k,label]) => (qt.overview && qt.overview[k]) ? `<div class="kv-row"><div class="k">${label}</div><div class="v">${qt.overview[k]}</div></div>` : '')
+        .join('');
+      if(!rows) return;
+      const block = document.createElement('div');
+      block.className = 'qt-block';
+      block.innerHTML = `
+        ${qts.length > 1 ? `<div class="qt-name">${qt.id ? qt.id + ' — ' : ''}${qt.name}</div>` : ''}
+        <div class="kv">${rows}</div>
+      `;
+      overviewEl.appendChild(block);
+    });
   }
 
-  const rolesEl = document.getElementById('d2roles');
-  rolesEl.innerHTML = '';
-  if(p.roles && p.roles.length){
-    p.roles.forEach(r=>{
-      const div = document.createElement('div');
-      div.className = 'kv-row';
-      div.innerHTML = `<div class="k">${r[0]}</div><div class="v">${r[1]}</div>`;
-      rolesEl.appendChild(div);
-    });
-  } else {
-    rolesEl.innerHTML = '<div class="missing">Chưa xác định rõ vai trò — cần bổ sung thông tin.</div>';
-  }
-
+  // Cụm 2: Hệ thống / Công cụ liên quan (gộp từ mọi QT con)
   const sysEl = document.getElementById('d2systems');
   sysEl.innerHTML = '';
-  if(p.systems && p.systems.length){
-    p.systems.forEach(s=>{
+  const tools = [];
+  qts.forEach(qt => (qt.tools||[]).forEach(t=>{ if(t && tools.indexOf(t)===-1) tools.push(t); }));
+  if(tools.length){
+    tools.forEach(t=>{
       const li = document.createElement('li');
-      li.textContent = s;
+      li.textContent = t;
       sysEl.appendChild(li);
     });
   } else {
     sysEl.innerHTML = '<li class="missing">Chưa có hệ thống hỗ trợ — cần bổ sung thông tin.</li>';
   }
 
-  const sopEl = document.getElementById('d2sops');
-  sopEl.innerHTML = '';
-  if(p.sops && p.sops.length){
-    p.sops.forEach(s=>{
-      const li = document.createElement('li');
-      li.innerHTML = `${s[0]}<span class="path">${s[1]}</span>`;
-      sopEl.appendChild(li);
+  // Cột phải: các button "Quy trình" do Admin cấu hình
+  const btnEl = document.getElementById('d2buttons');
+  btnEl.innerHTML = '';
+  const buttons = getProcessButtons(item.id);
+  if(buttons.length){
+    buttons.forEach(b=>{
+      const a = document.createElement('a');
+      a.className = 'detail-btn';
+      a.target = '_blank';
+      a.rel = 'noopener';
+      a.href = resolveOpenUrl(b.url, b.name);
+      a.textContent = '📄 ' + b.name;
+      btnEl.appendChild(a);
     });
   } else {
-    sopEl.innerHTML = '<li class="missing">Chưa có tài liệu SOP liên kết.</li>';
+    btnEl.innerHTML = '<div class="missing">Chưa có quy trình nào được cấu hình. Vào trang Admin (🔒) để thêm tên button & link.</div>';
   }
 
   document.getElementById('page1').style.display = 'none';
   document.getElementById('page2').style.display = 'block';
-  document.getElementById('crumbs').innerHTML = `<button onclick="goBack()">Trang chủ</button> / ${d.name} / ${p.name}`;
+  document.getElementById('crumbs').innerHTML = `<button onclick="goBack()">Trang chủ</button> / ${d.name} / ${item.title}`;
   window.scrollTo({top:0, behavior:'smooth'});
 }
 
@@ -1302,6 +1696,7 @@ function goBack(){
   document.getElementById('crumbs').textContent = 'Trang chủ';
   window.scrollTo({top:0, behavior:'smooth'});
 }
+
 </script>
 </body>
 </html>
