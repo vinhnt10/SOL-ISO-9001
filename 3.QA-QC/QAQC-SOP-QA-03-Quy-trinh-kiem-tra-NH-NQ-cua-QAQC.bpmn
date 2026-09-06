@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                   xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                   xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                   xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   targetNamespace="http://bpmn.io/schema/bpmn"
+                   id="Definitions_KiemTraNHNQQAQC">
+
+  <bpmn:collaboration id="Collaboration_1">
+    <bpmn:participant id="Participant_Pool" name="Quy trình Công tác kiểm tra Cửa hàng Nhượng quyền của QA/QC" processRef="Process_1" />
+  </bpmn:collaboration>
+
+  <bpmn:process id="Process_1" isExecutable="false">
+    <bpmn:laneSet>
+      <bpmn:lane id="Lane_QAQC" name="QA/QC">
+        <bpmn:flowNodeRef>StartEvent_1</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_1</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_2</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_3</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_1</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_4a</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_5</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_7</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_DaiDienCH" name="Đại diện Cửa hàng">
+        <bpmn:flowNodeRef>Task_6</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_8</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_1</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+
+    <bpmn:startEvent id="StartEvent_1" name="Bắt đầu">
+      <bpmn:outgoing>Flow_Start_Task1</bpmn:outgoing>
+    </bpmn:startEvent>
+
+    <bpmn:manualTask id="Task_1" name="1. Xuống cửa hàng">
+      <bpmn:documentation>Nhân viên QA/QC xuống cửa hàng nhượng quyền.</bpmn:documentation>
+      <bpmn:incoming>Flow_Start_Task1</bpmn:incoming>
+      <bpmn:outgoing>Flow_Task1_Task2</bpmn:outgoing>
+    </bpmn:manualTask>
+
+    <bpmn:manualTask id="Task_2" name="2. Thông báo cho đại diện CH">
+      <bpmn:documentation>Thông báo cho đại diện có trách nhiệm cao nhất tại cửa hàng (Tencho/Phó Tencho/Captain) về việc đánh giá.</bpmn:documentation>
+      <bpmn:incoming>Flow_Task1_Task2</bpmn:incoming>
+      <bpmn:outgoing>Flow_Task2_Task3</bpmn:outgoing>
+    </bpmn:manualTask>
+
+    <bpmn:manualTask id="Task_3" name="3. Tiến hành kiểm tra">
+      <bpmn:documentation>Nhân viên QC kiểm tra tại cửa hàng theo QC Checklist (QSC-SOL-FC).</bpmn:documentation>
+      <bpmn:incoming>Flow_Task2_Task3</bpmn:incoming>
+      <bpmn:outgoing>Flow_Task3_GW1</bpmn:outgoing>
+    </bpmn:manualTask>
+
+    <bpmn:exclusiveGateway id="Gateway_1" name="Phát hiện lỗi Risk/CCP?">
+      <bpmn:incoming>Flow_Task3_GW1</bpmn:incoming>
+      <bpmn:outgoing>Flow_GW1_Task4a</bpmn:outgoing>
+      <bpmn:outgoing>Flow_GW1_Task5</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:manualTask id="Task_4a" name="4. Báo ngay đại diện CH">
+      <bpmn:documentation>Nhánh "Có" — QC phát hiện lỗi Risk, CCP thì báo ngay cho đại diện CH để xử lý ngay.</bpmn:documentation>
+      <bpmn:incoming>Flow_GW1_Task4a</bpmn:incoming>
+      <bpmn:outgoing>Flow_Task4a_Task5</bpmn:outgoing>
+    </bpmn:manualTask>
+
+    <bpmn:manualTask id="Task_5" name="5. Tiếp tục đánh giá">
+      <bpmn:documentation>Gộp từ 2 nhánh: sau khi báo lỗi Risk/CCP, hoặc khi không phát hiện lỗi Risk/CCP thì tiếp tục đánh giá theo QC Checklist.</bpmn:documentation>
+      <bpmn:incoming>Flow_GW1_Task5</bpmn:incoming>
+      <bpmn:incoming>Flow_Task4a_Task5</bpmn:incoming>
+      <bpmn:outgoing>Flow_Task5_Task6</bpmn:outgoing>
+    </bpmn:manualTask>
+
+    <bpmn:manualTask id="Task_6" name="6. Thống nhất lỗi ghi nhận với đại diện CH">
+      <bpmn:documentation>Thống nhất lỗi ghi nhận và hạng mục đánh giá với đại diện cửa hàng.</bpmn:documentation>
+      <bpmn:incoming>Flow_Task5_Task6</bpmn:incoming>
+      <bpmn:outgoing>Flow_Task6_Task7</bpmn:outgoing>
+    </bpmn:manualTask>
+
+    <bpmn:manualTask id="Task_7" name="7. Tư vấn hướng giải quyết">
+      <bpmn:documentation>QC tư vấn hướng dẫn giải pháp nếu nằm trong chuyên môn/thẩm quyền của QA/QC.</bpmn:documentation>
+      <bpmn:incoming>Flow_Task6_Task7</bpmn:incoming>
+      <bpmn:outgoing>Flow_Task7_Task8</bpmn:outgoing>
+    </bpmn:manualTask>
+
+    <bpmn:manualTask id="Task_8" name="8. Ký xác nhận Checklist và làm báo cáo khắc phục">
+      <bpmn:documentation>QC và đại diện cửa hàng ký tên xác nhận trên Checklist; cửa hàng làm báo cáo khắc phục gửi cho QC. Lỗi vi phạm thường: trong 3 ngày kể từ ngày QA/QC gửi báo cáo. Lỗi CCP, RISK: khắc phục ngay tại thời điểm kiểm tra.</bpmn:documentation>
+      <bpmn:incoming>Flow_Task7_Task8</bpmn:incoming>
+      <bpmn:outgoing>Flow_Task8_End</bpmn:outgoing>
+    </bpmn:manualTask>
+
+    <bpmn:endEvent id="EndEvent_1" name="Hoàn tất kiểm tra">
+      <bpmn:incoming>Flow_Task8_End</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:sequenceFlow id="Flow_Start_Task1" sourceRef="StartEvent_1" targetRef="Task_1" />
+    <bpmn:sequenceFlow id="Flow_Task1_Task2" sourceRef="Task_1" targetRef="Task_2" />
+    <bpmn:sequenceFlow id="Flow_Task2_Task3" sourceRef="Task_2" targetRef="Task_3" />
+    <bpmn:sequenceFlow id="Flow_Task3_GW1" sourceRef="Task_3" targetRef="Gateway_1" />
+    <bpmn:sequenceFlow id="Flow_GW1_Task4a" name="Có" sourceRef="Gateway_1" targetRef="Task_4a" />
+    <bpmn:sequenceFlow id="Flow_GW1_Task5" name="Không" sourceRef="Gateway_1" targetRef="Task_5" />
+    <bpmn:sequenceFlow id="Flow_Task4a_Task5" sourceRef="Task_4a" targetRef="Task_5" />
+    <bpmn:sequenceFlow id="Flow_Task5_Task6" sourceRef="Task_5" targetRef="Task_6" />
+    <bpmn:sequenceFlow id="Flow_Task6_Task7" sourceRef="Task_6" targetRef="Task_7" />
+    <bpmn:sequenceFlow id="Flow_Task7_Task8" sourceRef="Task_7" targetRef="Task_8" />
+    <bpmn:sequenceFlow id="Flow_Task8_End" sourceRef="Task_8" targetRef="EndEvent_1" />
+  </bpmn:process>
+
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Collaboration_1">
+      <bpmndi:BPMNShape id="Participant_Pool_di" bpmnElement="Participant_Pool" isHorizontal="true">
+        <dc:Bounds x="160" y="60" width="2000" height="540" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_QAQC_di" bpmnElement="Lane_QAQC" isHorizontal="true">
+        <dc:Bounds x="190" y="90" width="1970" height="290" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_DaiDienCH_di" bpmnElement="Lane_DaiDienCH" isHorizontal="true">
+        <dc:Bounds x="190" y="380" width="1970" height="200" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="StartEvent_1_di" bpmnElement="StartEvent_1">
+        <dc:Bounds x="220" y="222" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_1_di" bpmnElement="Task_1">
+        <dc:Bounds x="300" y="200" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_2_di" bpmnElement="Task_2">
+        <dc:Bounds x="490" y="200" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_3_di" bpmnElement="Task_3">
+        <dc:Bounds x="680" y="200" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_1_di" bpmnElement="Gateway_1">
+        <dc:Bounds x="870" y="215" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_4a_di" bpmnElement="Task_4a">
+        <dc:Bounds x="970" y="100" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_5_di" bpmnElement="Task_5">
+        <dc:Bounds x="1160" y="200" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_6_di" bpmnElement="Task_6">
+        <dc:Bounds x="1350" y="420" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_7_di" bpmnElement="Task_7">
+        <dc:Bounds x="1540" y="200" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_8_di" bpmnElement="Task_8">
+        <dc:Bounds x="1730" y="420" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_1_di" bpmnElement="EndEvent_1">
+        <dc:Bounds x="1920" y="442" width="36" height="36" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNEdge id="Flow_Start_Task1_di" bpmnElement="Flow_Start_Task1">
+        <di:waypoint x="256" y="240" />
+        <di:waypoint x="300" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Task1_Task2_di" bpmnElement="Flow_Task1_Task2">
+        <di:waypoint x="420" y="240" />
+        <di:waypoint x="490" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Task2_Task3_di" bpmnElement="Flow_Task2_Task3">
+        <di:waypoint x="610" y="240" />
+        <di:waypoint x="680" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Task3_GW1_di" bpmnElement="Flow_Task3_GW1">
+        <di:waypoint x="800" y="240" />
+        <di:waypoint x="870" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_GW1_Task4a_di" bpmnElement="Flow_GW1_Task4a">
+        <di:waypoint x="895" y="215" />
+        <di:waypoint x="895" y="140" />
+        <di:waypoint x="970" y="140" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_GW1_Task5_di" bpmnElement="Flow_GW1_Task5">
+        <di:waypoint x="920" y="240" />
+        <di:waypoint x="1160" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Task4a_Task5_di" bpmnElement="Flow_Task4a_Task5">
+        <di:waypoint x="1090" y="140" />
+        <di:waypoint x="1220" y="140" />
+        <di:waypoint x="1220" y="200" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Task5_Task6_di" bpmnElement="Flow_Task5_Task6">
+        <di:waypoint x="1280" y="240" />
+        <di:waypoint x="1315" y="240" />
+        <di:waypoint x="1315" y="460" />
+        <di:waypoint x="1350" y="460" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Task6_Task7_di" bpmnElement="Flow_Task6_Task7">
+        <di:waypoint x="1470" y="460" />
+        <di:waypoint x="1505" y="460" />
+        <di:waypoint x="1505" y="240" />
+        <di:waypoint x="1540" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Task7_Task8_di" bpmnElement="Flow_Task7_Task8">
+        <di:waypoint x="1660" y="240" />
+        <di:waypoint x="1695" y="240" />
+        <di:waypoint x="1695" y="460" />
+        <di:waypoint x="1730" y="460" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Task8_End_di" bpmnElement="Flow_Task8_End">
+        <di:waypoint x="1850" y="460" />
+        <di:waypoint x="1920" y="460" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
