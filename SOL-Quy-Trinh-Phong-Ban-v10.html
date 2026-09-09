@@ -337,6 +337,11 @@
 <script>
 /* ============ DATA ============ */
 const DATA = {
+  nhahang:{
+    name:"Nhà hàng", icon:"🍴", khoi:"Khối Vận hành",
+    note:"Phòng ban mới thêm — chưa có khảo sát/nghiệp vụ chi tiết, cần bổ sung qua workshop riêng.",
+    processes:[]
+  },
   hr:{
     name:"Nhân sự (HR)", icon:"👥", khoi:"Khối Hỗ trợ Vận hành",
     note:"Nguồn: 6.Workshop-Survey-ThucTe/Phan-tich-sau-survey-final/survey-HR-Final.md",
@@ -1072,6 +1077,11 @@ const SURVEY = {
 
 
 const ORG_CHARTS = {
+  nhahang:{
+    source:"Chưa có dữ liệu sơ đồ tổ chức — bổ sung sau khảo sát",
+    code:`graph TD
+    A["Chưa có dữ liệu sơ đồ tổ chức"]`
+  },
   hr:{
     source:"survey-HR-Final.md · mục 1.3",
     code:`graph TD
